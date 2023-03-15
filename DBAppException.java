@@ -1,5 +1,3 @@
-package src;
-
 public class DBAppException extends Exception {
     public DBAppException() {
         super();
@@ -10,6 +8,6 @@ public class DBAppException extends Exception {
     }
 
     public static void main(String[] args){
-        System.out.println("MAJOR LOOOOSER");
+        System.out.println();
     }
 }
