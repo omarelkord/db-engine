@@ -5,8 +5,7 @@ public class DBApp {
 
     public DBApp(){
         tables = new Vector<Table>();
-
-        //test code
+        //test
     }
 
 }
