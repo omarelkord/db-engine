@@ -1,4 +1,5 @@
 import java.io.*;
+import java.util.Hashtable;
 import java.util.Vector;
 
 public class Table implements Serializable {
@@ -9,10 +10,20 @@ public class Table implements Serializable {
     private Vector<Integer> pageSize;
     private String pk;
 
+    private Hashtable<String, String> htblColNameType;
+    private Hashtable<String, String> htblColNameMin;
+    private Hashtable<String, String> htblColNameMax;
 
-    public Table(String name , String pk){
-        this.name= name;
-        this.pk= pk;
+    public Table(String strTableName, String strClusteringKeyColumn, Hashtable<String, String> htblColNameType,
+                 Hashtable<String, String> htblColNameMin, Hashtable<String, String> htblColNameMax){
+        this.name= strTableName;
+        this.pk= strClusteringKeyColumn;
+
+        this.htblColNameType = htblColNameType;
+        this.htblColNameMin = htblColNameMin;
+        this.htblColNameMax = htblColNameMax;
+
+
         this.pageMaxKey = new Vector<Object>();
         this.pageMinKey = new Vector<Object>();
         this.pageSize = new Vector<Integer>();

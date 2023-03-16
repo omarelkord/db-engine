@@ -1,0 +1,7 @@
+CityShop, ID, java.lang.Integer, True, null, null, 0,10000
+CityShop, Name, java.lang.String, False, NameAddrSpecIndex, Octree, “A”, “ZZZZZZZZZZZ”
+CityShop, X, java.lang.Double, False, XYZIndex, Octree, 0,1000000
+CityShop, Y, java.util.Double, False, XYZIndex, Octree, 0,1000000
+CityShop, Z, java.lang.Double, False, XYZIndex, Octree, 0,1000000
+CityShop, Specialization, java.lang.String, False, NameAddrSpecIndex, Octree, “A”, “ZZZZZZZZZZZ”
+CityShop, Address, java.lang.String, False, NameAddrSpecIndex, Octree, “A”, “ZZZZZZZZZZZ”
