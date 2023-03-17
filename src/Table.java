@@ -31,11 +31,11 @@ public class Table implements Serializable {
     }
 
     // Method to deserialize the Page object
-    public static Page deserialize(String filename) throws IOException, ClassNotFoundException {
+    public static Table deserialize(String filename) throws IOException, ClassNotFoundException {
         ObjectInputStream inputStream = new ObjectInputStream(new FileInputStream(filename));
-        Page page = (Page) inputStream.readObject();
+        Table table = (Table) inputStream.readObject();
         inputStream.close();
-        return page;
+        return table;
     }
 
     public Vector<String> getPagesPaths() {

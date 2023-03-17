@@ -44,7 +44,7 @@ public class DBApp {
                             String strClusteringKeyColumn,
                             Hashtable<String,String> htblColNameType,
                             Hashtable<String,String> htblColNameMin,
-                            Hashtable<String,String> htblColNameMax ) throws DBAppException, FileNotFoundException {
+                            Hashtable<String,String> htblColNameMax) throws DBAppException, FileNotFoundException, IOException {
 
         for(Table t : tables){
             if(t.getName().equals(strTableName))
@@ -60,7 +60,9 @@ public class DBApp {
         if(htblColNameType.get(strClusteringKeyColumn) == null)
             throw new DBAppException("Invalid Primary Key");
 
-        Table table = new Table(strTableName,strClusteringKeyColumn, htblColNameType, htblColNameMin, htblColNameMax);
+        Table table = new Table(strTableName,strClusteringKeyColumn);
+
+        table.serialize(d_file_path + strTableName);
         tables.add(table);
 
         writeInCSV(strTableName,strClusteringKeyColumn,htblColNameType,htblColNameMin,htblColNameMax); //a method that will write in the csv
@@ -154,7 +156,7 @@ public class DBApp {
                                   Hashtable<String,String> htblColNameType,
                                   Hashtable<String,String> htblColNameMin,
                                   Hashtable<String,String> htblColNameMax ) throws FileNotFoundException {
-        PrintWriter pw = new PrintWriter(new FileOutputStream("D:\\db-engine\\metadata.csv", true));
+        PrintWriter pw = new PrintWriter(new FileOutputStream("metadata.csv", true));
         String row = "";
         String isClusteringKey;
         for(String key: htblColNameType.keySet()){
@@ -181,7 +183,7 @@ public class DBApp {
 
     public static void main(String[] args) throws DBAppException, IOException, ParseException {
         String strTableName = "Student";
-        DBApp dbApp = new DBApp( );
+        DBApp dbApp = new DBApp();
         Hashtable htblColNameType = new Hashtable( );
         htblColNameType.put("id", "java.lang.Integer");
         htblColNameType.put("name", "java.lang.String");
