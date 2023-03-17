@@ -25,6 +25,21 @@ public class DBApp {
         this.tables = tables;
     }
 
+    public void init() throws IOException {
+
+//        for(String filepath : tableFilepaths){
+//
+//        }
+
+        tables = new Vector<Table>();
+        dataTypes = new Vector<>();
+        Collections.addAll(dataTypes, "java.lang.Integer", "java.lang.Double", "java.lang.String", "java.util.Date");
+
+        Properties properties = readConfig("DBApp.config");
+        maxNoRowsInPage = Integer.parseInt(properties.getProperty("MaximumRowsCountinTablePage"));
+        maxEntriesInNode = Integer.parseInt(properties.getProperty("MaximumEntriesinOctreeNode"));
+    }
+
     public void createTable(String strTableName,
                             String strClusteringKeyColumn,
                             Hashtable<String,String> htblColNameType,
@@ -141,10 +156,16 @@ public class DBApp {
                                   Hashtable<String,String> htblColNameMax ) throws FileNotFoundException {
         PrintWriter pw = new PrintWriter(new FileOutputStream("D:\\db-engine\\metadata.csv", true));
         String row = "";
+        String isClusteringKey;
         for(String key: htblColNameType.keySet()){
             row = "\r\n";
             pw.append(row);
-            row = strTableName+","+key+","+htblColNameType.get(key)+","+htblColNameType.get(key)+","+strClusteringKeyColumn+","+"false,"+htblColNameMin.get(key)+","+htblColNameMax.get(key);
+            if(key.equals(strClusteringKeyColumn))
+                isClusteringKey = "True";
+            else
+                isClusteringKey = "False";
+            row = strTableName + "," + key + "," + htblColNameType.get(key) + "," + isClusteringKey + ","
+                    + "null," + "null," + htblColNameMin.get(key) + "," + htblColNameMax.get(key);
             pw.append(row);
         }
         pw.close();

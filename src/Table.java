@@ -10,19 +10,13 @@ public class Table implements Serializable {
     private Vector<Integer> pageSize;
     private String pk;
 
-    private Hashtable<String, String> htblColNameType;
-    private Hashtable<String, String> htblColNameMin;
-    private Hashtable<String, String> htblColNameMax;
+//    private Hashtable<String, String> htblColNameType;
+//    private Hashtable<String, String> htblColNameMin;
+//    private Hashtable<String, String> htblColNameMax;
 
-    public Table(String strTableName, String strClusteringKeyColumn, Hashtable<String, String> htblColNameType,
-                 Hashtable<String, String> htblColNameMin, Hashtable<String, String> htblColNameMax){
+    public Table(String strTableName, String strClusteringKeyColumn){
         this.name= strTableName;
         this.pk= strClusteringKeyColumn;
-
-        this.htblColNameType = htblColNameType;
-        this.htblColNameMin = htblColNameMin;
-        this.htblColNameMax = htblColNameMax;
-
 
         this.pageMaxKey = new Vector<Object>();
         this.pageMinKey = new Vector<Object>();

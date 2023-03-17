@@ -2,8 +2,28 @@ import java.io.*;
 import java.util.*;
 public class Page implements Serializable {
     private Vector<Object> tuples;
+    private static int maxIDSoFar = 0;
+    private int id;
+
+    public static int getMaxIDSoFar() {
+        return maxIDSoFar;
+    }
+
+    public static void setMaxIDSoFar(int maxIDSoFar) {
+        Page.maxIDSoFar = maxIDSoFar;
+    }
+
+    public int getId() {
+        return id;
+    }
+
+    public void setId(int id) {
+        this.id = id;
+    }
+
     public Page(){
         tuples = new Vector<>();
+        this.id = maxIDSoFar++;
     }
 
     public void setTuples(Vector<Object> tuples) {
