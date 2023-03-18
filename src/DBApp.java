@@ -1,4 +1,6 @@
 import java.io.*;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.*;
 
 public class DBApp {
@@ -182,39 +184,86 @@ public class DBApp {
     }
 
     public static void main(String[] args) throws DBAppException, IOException, ParseException {
-        String strTableName = "Student";
-        DBApp dbApp = new DBApp();
-        Hashtable htblColNameType = new Hashtable( );
-        htblColNameType.put("id", "java.lang.Integer");
-        htblColNameType.put("name", "java.lang.String");
-        htblColNameType.put("gpa", "java.lang.Double");
-        Hashtable htblColNameMin = new Hashtable();
-        htblColNameMin.put("id","1000");
-        htblColNameMin.put("name","ZZZZZ");
-        htblColNameMin.put("gpa","1000.0");
-        Hashtable htblColNameMax = new Hashtable();
-        htblColNameMax.put("id","1000");
-        htblColNameMax.put("name","ZZZZZ");
-        htblColNameMax.put("gpa","1000.0");
-        dbApp.createTable( strTableName, "id", htblColNameType, htblColNameMin,htblColNameMax );
-        String name = "Student2";
-        Hashtable types = new Hashtable( );
-        types.put("id", "java.lang.Integer");
-        types.put("name", "java.lang.String");
-        types.put("gpa", "java.lang.Double");
-        Hashtable Min = new Hashtable();
-        Min.put("id","1000");
-        Min.put("name","ZZZZZ");
-        Min.put("gpa","1000.0");
-        Hashtable Max = new Hashtable();
-        Max.put("id","1000");
-        Max.put("name","ZZZZZ");
-        Max.put("gpa","1000.0");
-        Object i = "";
-        Object date = new Date(2022 - 1900, 3, 16);
-        String s = "2022-03-16";
-        System.out.println(compare(date,s));
+
+        Hashtable<String, Integer> myHashtable = new Hashtable<>();
+        myHashtable.put("Alice Wonderland", 25);
+        myHashtable.put("Bob Maximos", 30);
+        myHashtable.put("Charlie Factory", 35);
+
+        Vector<Hashtable<String, Integer>> vector = new Vector<>();
+        vector.add(myHashtable);
+        vector.add(myHashtable);
+        vector.add(myHashtable);
+        // print the hashtable in a tabular format with a border
+
+        for(Hashtable<String, Integer> hashtable : vector){
+            printHashtableWithBorder(hashtable);
+            System.out.println();
+        }
+
+
+        ArrayList<Integer> list = new ArrayList<>();
+        Collections.addAll(list,1,3,5,7,9,11,12);
+//
+        list.remove(2);
+//        int left = 0;
+//        int right = list.size() - 1;
+//
+//        int x = 13;
+//
+//        //1 3 5 9 11 12
+//        while(left<=right){
+//            int mid = (left + right) / 2;
+////            System.out.println("left = " + left);
+////            System.out.println("right = " + right);
+//
+//            if(x < list.get(mid)) {
+//                right = mid - 1;
+//            }
+//            else {
+//                left = mid + 1;
+//            }
+//
+//        }
+//
+//        list.add(left, x);
+//        System.out.println(list);
 
     }
+    public static <K, V> void printHashtableWithBorder(Hashtable<K, V> hashtable) {
+        // find the maximum length of the keys and values in the hashtable
+        int maxKeyLength = 0;
+        int maxValueLength = 0;
+        for (K key : hashtable.keySet()) {
+            int keyLength = key.toString().length();
+            if (keyLength > maxKeyLength) {
+                maxKeyLength = keyLength;
+            }
+
+            int valueLength = hashtable.get(key).toString().length();
+            if (valueLength > maxValueLength) {
+                maxValueLength = valueLength;
+            }
+        }
+
+        // build the output string
+        StringBuilder sb = new StringBuilder();
+        String borderHorizontal = "+" + "-".repeat(maxKeyLength + 2) + "+" + "-".repeat(maxValueLength + 2) + "+\n";
+        sb.append(borderHorizontal);
+        sb.append(String.format("| %-" + maxKeyLength + "s | %-" + maxValueLength + "s |\n", "Col", "Val"));
+        sb.append(borderHorizontal);
+        for (K key : hashtable.keySet()) {
+            V value = hashtable.get(key);
+            sb.append(String.format("| %-" + maxKeyLength + "s | %-" + maxValueLength + "s |\n", key.toString(), value.toString()));
+        }
+        sb.append(borderHorizontal);
+
+        // print the output string
+        System.out.print(sb.toString());
+    }
+
+
+
+
 
 }
