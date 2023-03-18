@@ -2,8 +2,8 @@ import java.io.*;
 import java.util.*;
 
 public class DBApp {
-    private Vector<Table> tables;
-    private Vector<String> tableFilepaths;
+
+    private Vector<String> tableNames;
     private Vector<String> dataTypes;
     private static String d_file_path = "D:\\";
     private int maxNoRowsInPage;
@@ -17,13 +17,6 @@ public class DBApp {
        }
     }
 
-    public Vector<Table> getTables() {
-        return tables;
-    }
-
-    public void setTables(Vector<Table> tables) {
-        this.tables = tables;
-    }
 
     public void init() throws IOException {
 
@@ -31,7 +24,7 @@ public class DBApp {
 //
 //        }
 
-        tables = new Vector<Table>();
+        tableNames = new Vector<>();
         dataTypes = new Vector<>();
         Collections.addAll(dataTypes, "java.lang.Integer", "java.lang.Double", "java.lang.String", "java.util.Date");
 
@@ -46,10 +39,8 @@ public class DBApp {
                             Hashtable<String,String> htblColNameMin,
                             Hashtable<String,String> htblColNameMax) throws DBAppException, FileNotFoundException, IOException {
 
-        for(Table t : tables){
-            if(t.getName().equals(strTableName))
-                throw new DBAppException("Invalid table name, already exists");
-        }
+        if(tableNames.contains(strTableName))
+            throw new DBAppException("Table already exists");
 
         for (Map.Entry<String, String> entry : htblColNameType.entrySet()) {
             String value = entry.getValue();
@@ -60,10 +51,12 @@ public class DBApp {
         if(htblColNameType.get(strClusteringKeyColumn) == null)
             throw new DBAppException("Invalid Primary Key");
 
-        Table table = new Table(strTableName,strClusteringKeyColumn);
 
-        table.serialize(d_file_path + strTableName);
-        tables.add(table);
+        //post-verification
+
+        Table table = new Table(strTableName, strClusteringKeyColumn);
+        tableNames.add(strTableName);
+        table.serialize(strTableName);
 
         writeInCSV(strTableName,strClusteringKeyColumn,htblColNameType,htblColNameMin,htblColNameMax); //a method that will write in the csv
     }
@@ -83,10 +76,10 @@ public class DBApp {
         if(!flag)
             throw new DBAppException("Table not found");
 
-        BufferedReader br = new BufferedReader(new FileReader(d_file_path));
-
-        String line = br.readLine();
-        String[] content = line.split(",");
+//        BufferedReader br = new BufferedReader(new FileReader(METADATA_PATH));
+//
+//        String line = br.readLine();
+//        String[] content = line.split(",");
 
         String clusteringKey = "";
 
@@ -121,11 +114,45 @@ public class DBApp {
             line = br.readLine();
         }
 
-        if(table.getPagesPaths().isEmpty()){
+        Comparable clusteringKeyValue = (Comparable) htblColNameValue.get(clusteringKey);
+
+        //INTEGRITY CONSTRAINTS
+        if(clusteringKeyValue == null)
+            throw new DBAppException("Cannot allow null values for this field");
+        if(table.getHtblKeyPageId().get(clusteringKeyValue)!=null)
+            throw new DBAppException("Cannot allow duplicate values for this field");
+
+
+        if(table.getHtblPageIdPagesPaths().isEmpty()){ //the first case is inserting in an empty table
             Page page = new Page();
+            page.getTuples().add(htblColNameValue);
             String filepath = "page-" + page.getId();
             page.serialize(filepath);
             table.getPagesPaths().add(filepath);
+        }
+        else {
+
+//            clusteringKeyValue
+
+            for(Integer id : table.getHtblPageIdMinMax().keySet()){
+                Pair pair = table.getHtblPageIdMinMax().get(id);
+                Object min = pair.getMin();
+                Object max = pair.getMax();
+
+
+
+                if(clusteringKeyValue.compareTo(min) > 0 && clusteringKeyValue.compareTo(max) < 0){
+                    String locatedPagePath = table.getHtblPageIdPagesPaths().get(id);
+                    Page locatedPage = Page.deserialize(locatedPagePath);
+
+                    //HELPER CALL();
+                    //binary search for record
+                    Vector<Hashtable<String, Object>> tuples = new Vector<>();
+                    binaryInsert(htblColNameValue,locatedPage.getTuples(),clusteringKey);
+
+
+                }
+            }
         }
     }
 
