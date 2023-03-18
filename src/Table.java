@@ -12,9 +12,8 @@ public class Table implements Serializable {
     private Hashtable<Integer, Integer> htblPageIdCurrPageSize;
     private String CK;
 
-//    private Hashtable<String, String> htblColNameType;
-//    private Hashtable<String, String> htblColNameMin;
-//    private Hashtable<String, String> htblColNameMax;
+    private static final String TABLE_DIRECTORY = "D:\\db-engine\\Resources\\Tables\\";
+
 
     public Hashtable<Object, Integer> getHtblKeyPageId() {
         return htblKeyPageId;
