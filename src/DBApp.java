@@ -63,17 +63,9 @@ public class DBApp {
 
     public void insertIntoTable(String strTableName,
                                 Hashtable<String,Object> htblColNameValue) throws DBAppException, FileNotFoundException, IOException, ClassNotFoundException, ParseException {
+        Table table = Table.deserialize(strTableName);
 
-
-        boolean flag = false;
-        Table table= null;
-        for(int i=0;i<tables.size();i++){
-            if(tables.get(i).getName().equals(strTableName)){
-                flag=true;
-                table = tables.get(i);
-            }
-        }
-        if(!flag)
+        if(table == null)
             throw new DBAppException("Table not found");
 
 //        BufferedReader br = new BufferedReader(new FileReader(METADATA_PATH));
@@ -243,5 +235,7 @@ public class DBApp {
         System.out.println(compare(date,s));
 
     }
+
+
 
 }

@@ -1,7 +1,7 @@
 import java.io.*;
 import java.util.*;
 public class Page implements Serializable {
-    private Vector<Object> tuples;
+    private Vector<Hashtable<String,Object>> tuples;
     private static int maxIDSoFar = 0;
     private int id;
 
@@ -26,11 +26,11 @@ public class Page implements Serializable {
         this.id = maxIDSoFar++;
     }
 
-    public void setTuples(Vector<Object> tuples) {
+    public void setTuples(Vector<Hashtable<String,Object>> tuples) {
         this.tuples = tuples;
     }
 
-    public Vector<Object> getTuples() {
+    public Vector<Hashtable<String,Object>> getTuples() {
         return tuples;
     }
 
@@ -63,9 +63,9 @@ public class Page implements Serializable {
     }
     public static void main(String[] args) throws IOException ,ClassNotFoundException {
         Page page = new Page();
-        Vector<Object> tuples = new Vector<>();
-        tuples.add("Hello");
-        tuples.add("World");
+        Vector<Hashtable<String,Object>> tuples = new Vector<>();
+//        tuples.add("Hello");
+//        tuples.add("World");
         page.setTuples(tuples);
 
         // Serialize the Page object to a binary file
