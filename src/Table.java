@@ -3,25 +3,34 @@ import java.util.Hashtable;
 import java.util.Vector;
 
 public class Table implements Serializable {
-    private Vector<String> pagesPaths;
-    private Vector<Object> pageMaxKey;
-    private Vector<Object> pageMinKey;
     private String name;
-    private Vector<Integer> pageSize;
-    private String pk;
+    private Hashtable<Integer,String> htblPageIdPagesPaths;
+    private Hashtable<Integer, Pair> htblPageIdMinMax;
+    private Hashtable<Object,Integer> htblKeyPageId;
+
+    //pageID -> currPageSize
+    private Hashtable<Integer, Integer> htblPageIdCurrPageSize;
+    private String CK;
 
 //    private Hashtable<String, String> htblColNameType;
 //    private Hashtable<String, String> htblColNameMin;
 //    private Hashtable<String, String> htblColNameMax;
 
+    public Hashtable<Object, Integer> getHtblKeyPageId() {
+        return htblKeyPageId;
+    }
+
+    public void setHtblKeyPageId(Hashtable<Object, Integer> htblKeyPageId) {
+        this.htblKeyPageId = htblKeyPageId;
+    }
+
     public Table(String strTableName, String strClusteringKeyColumn){
         this.name= strTableName;
-        this.pk= strClusteringKeyColumn;
-
-        this.pageMaxKey = new Vector<Object>();
-        this.pageMinKey = new Vector<Object>();
-        this.pageSize = new Vector<Integer>();
-        this.pagesPaths = new Vector<String>();
+        this.CK = strClusteringKeyColumn;
+        htblPageIdPagesPaths = new Hashtable<>();
+        htblPageIdMinMax = new Hashtable<>();
+        htblPageIdCurrPageSize = new Hashtable<>();
+        htblKeyPageId = new Hashtable<>();
     }
 
     public void serialize(String filename) throws IOException {
@@ -30,36 +39,13 @@ public class Table implements Serializable {
         outputStream.close();
     }
 
-    // Method to deserialize the Page object
-    public static Table deserialize(String filename) throws IOException, ClassNotFoundException {
-        ObjectInputStream inputStream = new ObjectInputStream(new FileInputStream(filename));
+
+    public static Table deserialize(String tableName) throws IOException, ClassNotFoundException {
+        ObjectInputStream inputStream = new ObjectInputStream(new FileInputStream(TABLE_DIRECTORY + tableName));
         Table table = (Table) inputStream.readObject();
+
         inputStream.close();
         return table;
-    }
-
-    public Vector<String> getPagesPaths() {
-        return pagesPaths;
-    }
-
-    public void setPagesPaths(Vector<String> pagesPaths) {
-        this.pagesPaths = pagesPaths;
-    }
-
-    public Vector<Object> getMaxKey() {
-        return pageMaxKey;
-    }
-
-    public void setMaxKey(Vector<Object> maxKey) {
-        this.pageMaxKey = maxKey;
-    }
-
-    public Vector<Object> getMinKey() {
-        return pageMinKey;
-    }
-
-    public void setMinKey(Vector<Object> minKey) {
-        this.pageMinKey = minKey;
     }
 
     public String getName() {
@@ -70,12 +56,28 @@ public class Table implements Serializable {
         this.name = name;
     }
 
-    public Vector<Integer> getPageSize() {
-        return pageSize;
+    public Hashtable<Integer, String> getHtblPageIdPagesPaths() {
+        return htblPageIdPagesPaths;
     }
 
-    public void setPageSize(Vector<Integer> pageSize) {
-        this.pageSize = pageSize;
+    public void setHtblPageIdPagesPaths(Hashtable<Integer, String> htblPageIdPagesPaths) {
+        this.htblPageIdPagesPaths = htblPageIdPagesPaths;
+    }
+
+    public Hashtable<Integer, Pair> getHtblPageIdMinMax() {
+        return htblPageIdMinMax;
+    }
+
+    public void setHtblPageIdMinMax(Hashtable<Integer, Pair> htblPageIdMaxMin) {
+        this.htblPageIdMinMax = htblPageIdMaxMin;
+    }
+
+    public Hashtable<Integer, Integer> getHtblPageIdCurrPageSize() {
+        return htblPageIdCurrPageSize;
+    }
+
+    public void setHtblPageIdCurrPageSize(Hashtable<Integer, Integer> htblPageIdCurrPageSize) {
+        this.htblPageIdCurrPageSize = htblPageIdCurrPageSize;
     }
 
     public String getPk() {
@@ -86,10 +88,17 @@ public class Table implements Serializable {
         this.pk = pk;
     }
 
+    public String getPagePath(int id){
+        return this.getHtblPageIdPagesPaths().get(id);
+    }
 
-
+    public boolean hasPage(int id){
+        return this.getHtblPageIdPagesPaths().get(id) != null;
+    }
 
     public static void main(String[] args){
+
+
 
     }
 }
