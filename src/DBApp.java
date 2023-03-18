@@ -73,38 +73,43 @@ public class DBApp {
 //        String line = br.readLine();
 //        String[] content = line.split(",");
 
-        String clusteringKey = "";
-
-        while(line!=null) {
-
-            String tableName = content[0];
-            String colName = content[1];
-            String colType = content[2];
-            String isClusteringKey = content[3];
-            String min = content[6];
-            String max = content[7];
-            Object value = htblColNameValue.get(colName);
-
-            if (!tableName.equals(strTableName)) {
-                line = br.readLine();
-                continue;
-            }
-
-            if (value != null) {
-                if (!sameType(value, colType))
-                    throw new DBAppException("Incompatible data types");
-                if (compare(value, max) > 0)
-                    throw new DBAppException("Value is greater than the allowed maximum value");
-                if (compare(value, min) < 0)
-                    throw new DBAppException("Value is less than the allowed minimum value");
-            }
-            //setting primary key
-            if (Boolean.parseBoolean(isClusteringKey)) {
-                clusteringKey = colName;
-            }
-
-            line = br.readLine();
+        String clusteringKey = null;
+        try {
+            clusteringKey = getClusteringKey(strTableName, htblColNameValue);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
         }
+//
+//        while(line!=null) {
+//
+//            String tableName = content[0];
+//            String colName = content[1];
+//            String colType = content[2];
+//            String isClusteringKey = content[3];
+//            String min = content[6];
+//            String max = content[7];
+//            Object value = htblColNameValue.get(colName);
+//
+//            if (!tableName.equals(strTableName)) {
+//                line = br.readLine();
+//                continue;
+//            }
+//
+//            if (value != null) {
+//                if (!sameType(value, colType))
+//                    throw new DBAppException("Incompatible data types");
+//                if (compare(value, max) > 0)
+//                    throw new DBAppException("Value is greater than the allowed maximum value");
+//                if (compare(value, min) < 0)
+//                    throw new DBAppException("Value is less than the allowed minimum value");
+//            }
+//            //setting primary key
+//            if (Boolean.parseBoolean(isClusteringKey)) {
+//                clusteringKey = colName;
+//            }
+//
+//            line = br.readLine();
+//        }
 
         Comparable clusteringKeyValue = (Comparable) htblColNameValue.get(clusteringKey);
 
@@ -148,7 +153,61 @@ public class DBApp {
         }
     }
 
-    public boolean sameType(Object data, String dataType) throws ClassNotFoundException{
+    public void helper(Hashtable<String,Object> tuple, Integer id,Table table) throws IOException, ClassNotFoundException {
+        if(!table.hasPage(id)) {
+            // ADJUST HASHTABLES
+            Page newPage = new Page();
+            newPage.getTuples().add(0, tuple);
+            updateHtbls(newPage, table);
+            return;
+        }
+
+        Page page = Page.deserialize(table.getPagePath(id));
+        page.getTuples().add(0, tuple);
+
+        Object CKValue = tuple.get(table.getCKName());
+
+        // >>>
+        table.getHtblKeyPageId().put(CKValue, id);
+
+        if(page.isFull()) {
+            int lastIndex = page.getTuples().size() - 1;
+            Hashtable<String, Object> newTuple = page.getTuples().remove(lastIndex);
+
+            helper(newTuple, id + 1, table);
+        }
+    }
+
+    public void updateHtbls(Page newPage, Table table){
+        Object CKValue = newPage.getTuples().get(0).get(table.getCKName());
+        int id = newPage.getId();
+        table.getHtblPageIdCurrPageSize().put(id, 1);
+        table.getHtblPageIdMinMax().put(id, new Pair(CKValue, CKValue));
+        table.getHtblPageIdPagesPaths().put(id, table.getPagePath(id));
+
+    }
+
+    public static void binaryInsert(Hashtable<String,Object> tuple, Vector<Hashtable<String, Object>> page, String ck){
+        int left = 0;
+        int right = page.size() - 1;
+
+        while(left<=right){
+            int mid = (left + right) / 2;
+
+            if(tuple.get(ck) == null)
+                System.out.println(true);
+
+            if( ((Comparable)page.get(mid).get(ck)).compareTo(tuple.get(ck))>0) {
+                right = mid - 1;
+            }
+            else {
+                left = mid + 1;
+            }
+        }
+        page.add(left,tuple);
+
+    }
+    public static boolean sameType(Object data, String dataType) throws ClassNotFoundException{
         return data.getClass().equals(Class.forName(dataType));
     }
 
