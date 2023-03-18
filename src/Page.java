@@ -4,6 +4,15 @@ public class Page implements Serializable {
     private Vector<Hashtable<String,Object>> tuples;
     private static int maxIDSoFar = 0;
     private int id;
+    private int currPageSize;
+    private static int maxPageSize;
+
+    public Page() throws IOException{
+        tuples = new Vector<>();
+        this.id = maxIDSoFar++;
+        currPageSize = 0;
+        maxPageSize = Integer.parseInt(readConfig("DBApp.config").getProperty("MaximumRowsCountinTablePage"));
+    }
 
     public static int getMaxIDSoFar() {
         return maxIDSoFar;
@@ -19,11 +28,6 @@ public class Page implements Serializable {
 
     public void setId(int id) {
         this.id = id;
-    }
-
-    public Page(){
-        tuples = new Vector<>();
-        this.id = maxIDSoFar++;
     }
 
     public void setTuples(Vector<Hashtable<String,Object>> tuples) {

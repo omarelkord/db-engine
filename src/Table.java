@@ -32,8 +32,8 @@ public class Table implements Serializable {
         htblKeyPageId = new Hashtable<>();
     }
 
-    public void serialize(String filename) throws IOException {
-        ObjectOutputStream outputStream = new ObjectOutputStream(new FileOutputStream(filename));
+    public void serialize(String tableName) throws IOException {
+        ObjectOutputStream outputStream = new ObjectOutputStream(new FileOutputStream(TABLE_DIRECTORY + tableName));
         outputStream.writeObject(this);
         outputStream.close();
     }
@@ -79,12 +79,12 @@ public class Table implements Serializable {
         this.htblPageIdCurrPageSize = htblPageIdCurrPageSize;
     }
 
-    public String getPk() {
-        return pk;
+    public String getCKName() {
+        return CK;
     }
 
-    public void setPk(String pk) {
-        this.pk = pk;
+    public void setCKName(String ck) {
+        this.CK = ck;
     }
 
     public String getPagePath(int id){
