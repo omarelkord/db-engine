@@ -47,6 +47,20 @@ public class Page implements Serializable {
         inputStream.close();
         return page;
     }
+
+    public static Properties readConfig(String path) throws IOException {
+        Properties properties = new Properties();
+        FileInputStream inputStream = new FileInputStream(path);
+        properties.load(inputStream);
+        inputStream.close();
+        return properties;
+    }
+
+    public boolean isFull(){
+        if(currPageSize == maxPageSize)
+            return true;
+        return false;
+    }
     public static void main(String[] args) throws IOException ,ClassNotFoundException {
         Page page = new Page();
         Vector<Object> tuples = new Vector<>();
