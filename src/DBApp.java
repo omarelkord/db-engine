@@ -151,7 +151,7 @@ public class DBApp {
             Object max = pair.getMax();
 
 
-            //NOT FULL:
+            // NOT FULL:
             // ) less than min => insert
             // ) else => less than max (range) => insert same page
             // ) else if greater than max
@@ -166,6 +166,8 @@ public class DBApp {
                 locatedPage = currPage;
                 break;
             }
+
+            currPage.serialize(table.getPagePath(id));
         }
 
         if(locatedPage == null){
