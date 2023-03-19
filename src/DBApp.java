@@ -1,4 +1,5 @@
 import java.io.*;
+import java.sql.SQLOutput;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -143,8 +144,12 @@ public class DBApp {
         }
 
         Page locatedPage = null;
+        int currPageId =0;
+        Collection<Integer> keys = table.getHtblPageIdMinMax().keySet();
+        Vector<Integer> vector = new Vector<Integer>(keys);
+        Collections.sort(vector);
 
-        for(Integer id : table.getHtblPageIdMinMax().keySet()){
+        for(Integer id : vector){
             Page currPage = Page.deserialize(table.getPagePath(id));
             Pair pair = table.getHtblPageIdMinMax().get(id);
             Object min = pair.getMin();
@@ -162,7 +167,9 @@ public class DBApp {
             if(clusteringKeyValue.compareTo(min) < 0
                 || (clusteringKeyValue.compareTo(min) > 0 && clusteringKeyValue.compareTo(max) < 0)
                 || (clusteringKeyValue.compareTo(max) > 0 && !currPage.isFull())) {
-
+                //System.out.println(currPage.isFull() + " "+ currPage.getId());
+               // System.out.println(clusteringKeyValue);
+                currPageId = id;
                 locatedPage = currPage;
                 break;
             }
@@ -175,20 +182,29 @@ public class DBApp {
             table.serialize(strTableName);
             return;
         }
-
-        Vector<Hashtable<String, Object>> tuples = new Vector<>();
-        binaryInsert(htblColNameValue,locatedPage.getTuples(),clusteringKey);
-
         if(locatedPage.isFull()){
+
             int lastIndex = locatedPage.getTuples().size() - 1;
             Hashtable<String, Object> newTuple = locatedPage.getTuples().remove(lastIndex);
 
             shift(newTuple, locatedPage.getId() + 1, table);
+            //System.out.println(newTuple.get(table.getCKName()));
 //            locatedPage.serialize("path-"+locatedPage.getId());
         }
+        Vector<Hashtable<String, Object>> tuples = new Vector<>();
+        binaryInsert(htblColNameValue,locatedPage.getTuples(),clusteringKey);
+
+        setMinMax(currPageId,table,locatedPage); // we forgot to update the page's max and min values
+        //System.out.println(table.getHtblPageIdMinMax().get(currPageId));
 
         locatedPage.serialize("page-"+locatedPage.getId());
         table.serialize(strTableName);
+    }
+
+    private void setMinMax(int currPageId, Table table,Page page) {
+        String ck = table.getCKName();
+        Pair temp = new Pair(page.getTuples().get(0).get(ck),page.getTuples().get(page.getTuples().size()-1).get(ck));
+        table.getHtblPageIdMinMax().put(currPageId,temp);
     }
 
 
@@ -315,12 +331,19 @@ public class DBApp {
         tuple2.put("name", "Omar");
         Hashtable<String,Object> tuple3 = new Hashtable<>();
         tuple3.put("age",4);
+        tuple3.put("name","Ahmed");
         Hashtable<String,Object> tuple4 = new Hashtable<>();
         tuple4.put("age",6);
+        tuple4.put("name","Malak");
         Hashtable<String,Object> tuple5 = new Hashtable<>();
         tuple5.put("age",9);
+        tuple5.put("name","Menna");
         Hashtable<String,Object> tuple6 = new Hashtable<>();
         tuple6.put("age",5);
+        tuple6.put("name","Lobna");
+        Hashtable<String,Object> tuple7 = new Hashtable<>();
+        tuple6.put("age",3);
+        tuple6.put("name","Omar");
 
         DBApp dbApp = new DBApp();
         dbApp.init();
@@ -341,7 +364,10 @@ public class DBApp {
 
         dbApp.insertIntoTable("Students",tuple);
         dbApp.insertIntoTable("Students",tuple2);
-
+        dbApp.insertIntoTable("Students",tuple5);
+        dbApp.insertIntoTable("Students",tuple4);
+        dbApp.insertIntoTable("Students",tuple3);
+        dbApp.insertIntoTable("Students",tuple6);
         Table table = Table.deserialize("Students");
 
         for(int id : table.getHtblPageIdPagesPaths().keySet()){
@@ -349,10 +375,7 @@ public class DBApp {
             printVector(p.getTuples());
             p.serialize(table.getPagePath(id));
         }
-
-
-//        System.out.println(page);
-
+        //System.out.println(table.getHtblPageIdPagesPaths().size() );
 
     }
     public static <K, V> void printHashtableWithBorder(Hashtable<K, V> hashtable) {

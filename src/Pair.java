@@ -24,4 +24,8 @@ public class Pair implements Serializable {
     public void setMax(Object max) {
         this.max = max;
     }
+
+    public String toString(){
+        return "min: "+min+" max: "+ max;
+    }
 }

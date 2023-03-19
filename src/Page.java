@@ -4,13 +4,20 @@ public class Page implements Serializable {
     private Vector<Hashtable<String,Object>> tuples;
     private static int maxIDSoFar = 0;
     private int id;
-    private int currPageSize;
+
     private static int maxPageSize;
+
+
+
+    public int getMaxPageSize() {
+        return maxPageSize;
+    }
+
 
     public Page() throws IOException{
         tuples = new Vector<>();
         this.id = maxIDSoFar++;
-        currPageSize = 0;
+
         maxPageSize = Integer.parseInt(readConfig("DBApp.config").getProperty("MaximumRowsCountinTablePage"));
     }
 
@@ -61,7 +68,7 @@ public class Page implements Serializable {
     }
 
     public boolean isFull(){
-        if(currPageSize == maxPageSize)
+        if(this.tuples.size() == maxPageSize)
             return true;
         return false;
     }
