@@ -12,7 +12,7 @@ public class Table implements Serializable {
     private Hashtable<Integer, Integer> htblPageIdCurrPageSize;
     private String CK;
 
-    private static final String TABLE_DIRECTORY = "D:\\db-engine\\Resources\\Tables\\";
+    public static final String TABLE_DIRECTORY = "D:\\db-engine\\Tables\\";
 
 
     public Hashtable<Object, Integer> getHtblKeyPageId() {
@@ -33,14 +33,14 @@ public class Table implements Serializable {
     }
 
     public void serialize(String tableName) throws IOException {
-        ObjectOutputStream outputStream = new ObjectOutputStream(new FileOutputStream(TABLE_DIRECTORY + tableName));
+        ObjectOutputStream outputStream = new ObjectOutputStream(new FileOutputStream(TABLE_DIRECTORY + tableName + ".bin"));
         outputStream.writeObject(this);
         outputStream.close();
     }
 
 
     public static Table deserialize(String tableName) throws IOException, ClassNotFoundException {
-        ObjectInputStream inputStream = new ObjectInputStream(new FileInputStream(TABLE_DIRECTORY + tableName));
+        ObjectInputStream inputStream = new ObjectInputStream(new FileInputStream(TABLE_DIRECTORY + tableName + ".bin"));
         Table table = (Table) inputStream.readObject();
 
         inputStream.close();
