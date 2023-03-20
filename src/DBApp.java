@@ -18,9 +18,7 @@ public class DBApp {
 
     }
 
-
     public void init() throws IOException {
-
         tableNames = new Vector<>();
         dataTypes = new Vector<>();
         Collections.addAll(dataTypes, "java.lang.Integer", "java.lang.Double", "java.lang.String", "java.util.Date");
@@ -54,16 +52,19 @@ public class DBApp {
         //post-verification
 
         Table table = new Table(strTableName, strClusteringKeyColumn);
+        table.setCkType(htblColNameType.get(strClusteringKeyColumn));
+        table.setNumOfCols(htblColNameType.size());
+
         tableNames.add(strTableName);
         table.serialize();
 
         writeInCSV(strTableName, strClusteringKeyColumn, htblColNameType, htblColNameMin, htblColNameMax); //a method that will write in the csv
     }
 
-    public void verify(String strTableName, Hashtable<String, Object> htblColNameValue) throws Exception {
+    public void verifyInsert(String strTableName, Hashtable<String, Object> htblColNameValue) throws Exception {
 
         if (!tableNames.contains(strTableName))
-            throw new DBAppException("Table not found");        //OR CATCH FILENOTFOUNDEXC THEN THROW DBAPPEXC
+            throw new DBAppException("Table not found");     //OR CATCH FILENOTFOUNDEXC THEN THROW DBAPPEXC
 
         Table table = Table.deserialize(strTableName);
 
@@ -97,8 +98,10 @@ public class DBApp {
             }
 
             if (value != null) {
-                if (!sameType(value, colType))
+                if (!sameType(value, colType)) {
+                    System.out.println(colName);
                     throw new DBAppException("Incompatible data types");
+                }
                 if (compare(value, max) > 0)
                     throw new DBAppException("Value is greater than the allowed maximum value");
                 if (compare(value, min) < 0)
@@ -111,23 +114,13 @@ public class DBApp {
         br.close();
     }
 
-    //UPDATE MIN & MAX VALUES AFTER INSERTION
-    //CHECKED SO FAR:
-    //              1) INSERTING FROM SCRATCH
-    //              2) INSERTING IN PAGE WITH ROOM (NO-SHIFT)
-
-    //NOT CHECKED:
-    //              1)
-
     public void insertIntoTable(String strTableName,
                                 Hashtable<String, Object> htblColNameValue) throws Exception {
 
-        verify(strTableName, htblColNameValue);
+        verifyInsert(strTableName, htblColNameValue);
         Table table = Table.deserialize(strTableName);
-//        verify(table, htblColNameValue);
-
         Comparable ckValue = (Comparable) htblColNameValue.get(table.getClusteringKey());
-        Page locatedPage = table.getLocatedPage(ckValue);
+        Page locatedPage = table.getLocatedPage(ckValue, true);
 
         //HANDLES BOTH CASES: A) THERE ARE ZERO PAGES   B) THERE IS NO VIABLE PAGE TO INSERT IN
         if (locatedPage == null)
@@ -140,12 +133,130 @@ public class DBApp {
 
     public void deleteFromTable(String strTableName,
                                 Hashtable<String, Object> htblColNameValue)
-            throws DBAppException {
+            throws DBAppException, IOException, ClassNotFoundException {
 
+        Table table = Table.deserialize(strTableName);
+
+        // 1) LOCATE PAGE (WITHIN EXPLICIT RANGE : min <= ckValue <= max)
+        // 2) BINARY SEARCH FOR ELEMENT
+        // 3) REMOVE ELEMENT
+        // 4) SHIFT UP ALL PAGES STARTING FROM LAST TILL BASE CASE
+        // 5) CORNER CASE: IF PAGE BECOMES EMPTY => DELETE PAGE => DELETE IN HTBLS
+        // 6) UPDATE ALL PG HTBLS
     }
 
+    public void verifyUpdate(String strTableName,
+                             String strClusteringKeyValue,
+                             Hashtable<String, Object> htblColNameValue) throws Exception {
+
+        if (!tableNames.contains(strTableName))
+            throw new DBAppException("Table not found");
+
+        Table table = Table.deserialize(strTableName);
+
+        if (htblColNameValue.get(table.getClusteringKey()) != null)
+            throw new DBAppException("Cannot update the clustering key");
+        if(table.getNumOfCols() - 1 < htblColNameValue.size())
+            throw new DBAppException("Number of inserted columns to update is incorrect");
+
+        BufferedReader br = new BufferedReader(new FileReader(METADATA_PATH));
+
+        String line = br.readLine();
+        String[] content = line.split(",");
+
+        while (line != null) {
+
+            String tableName = content[0];
+            String colName = content[1];
+            String colType = content[2];
+            boolean isClusteringKey = Boolean.parseBoolean(content[3]);
+            String min = content[6];
+            String max = content[7];
+            Object value = htblColNameValue.get(colName);
+
+            if (!tableName.equals(table.getName())) {
+                line = br.readLine();
+                continue;
+            }
+
+            if (value != null) {
+                if (!sameType(value, colType))
+                    throw new DBAppException("Incompatible data types");
+                if (compare(value, max) > 0)
+                    throw new DBAppException("Value is greater than the allowed maximum value");
+                if (compare(value, min) < 0)
+                    throw new DBAppException("Value is less than the allowed minimum value");
+            }
+
+            if (isClusteringKey) {
+                try{
+                    parse(strClusteringKeyValue, colType);
+                }catch (Exception e){
+                    throw new DBAppException("Invalid data type for clustering key");
+                }
+            }
+
+            line = br.readLine();
+        }
+        table.serialize();
+        br.close();
+    }
+
+    public void updateTable(String strTableName,
+                            String strClusteringKeyValue,
+                            Hashtable<String, Object> htblColNameValue) throws Exception {
+
+        verifyUpdate(strTableName, strClusteringKeyValue, htblColNameValue);
+        Table table = Table.deserialize(strTableName);
+        Comparable ckValue = (Comparable) parse(strClusteringKeyValue, table.getCkType());
+
+        Page locatedPage = table.getLocatedPage(ckValue, false);
+
+        if (locatedPage == null)
+            return;
+
+        int tupleIndex = binarySearch(locatedPage, table.getClusteringKey(), ckValue);
+        Hashtable<String, Object> tupleToUpdate = locatedPage.getTuples().get(tupleIndex);
+
+        tupleToUpdate.putAll(htblColNameValue);
+        setMinMax(table, locatedPage);
+        locatedPage.serialize();
+        table.serialize();
+    }
+
+    public int binarySearch(Page page, String ckName, Comparable ckValue) {
+        Vector<Hashtable<String, Object>> tuples = page.getTuples();
+
+        int left = 0;
+        int right = tuples.size() - 1;
+
+        while (left <= right) {
+            int mid = (left + right) / 2;
+
+            if (((Comparable) tuples.get(mid).get(ckName)).compareTo(ckValue) == 0)
+                return mid;
+
+            if (((Comparable) tuples.get(mid).get(ckName)).compareTo(ckValue) > 0)
+                right = mid - 1;
+            else
+                left = mid + 1;
+        }
+
+        return -1;
+    }
+
+    public Object parse(String value, String type) throws ClassNotFoundException, ParseException {
+        return switch (type) {
+            case "java.lang.Integer" -> Integer.parseInt(value);
+            case "java.lang.Double" -> Double.parseDouble(value);
+            case "java.util.Date" -> new SimpleDateFormat("yyyy-MM-dd").parse(value);
+            default -> value;
+        };
+    }
+
+
     public void setMinMax(Table table, Page page) {
-        String ck = table.getCKName();
+        String ck = table.getClusteringKey();
         Pair newPair = new Pair(page.getTuples().get(0).get(ck), page.getTuples().get(page.getTuples().size() - 1).get(ck));
         table.getHtblPageIdMinMax().put(page.getId(), newPair);
     }
@@ -160,7 +271,7 @@ public class DBApp {
         Page page = Page.deserialize(id);
         page.getTuples().add(0, tuple);
 
-        Object CKValue = tuple.get(table.getCKName());
+        Object CKValue = tuple.get(table.getClusteringKey());
         table.getHtblKeyPageId().put(CKValue, id);
 
         if (page.isOverFlow()) {
@@ -198,22 +309,17 @@ public class DBApp {
     }
 
 
-    public void initPageHtbls(Page newPage, Table table) {
-
-        Object CKValue = newPage.getTuples().get(0).get(table.getCKName());
-
-        int id = newPage.getId();
-
-        table.getHtblPageIdCurrPageSize().put(id, 1);
-        table.getHtblPageIdMinMax().put(id, new Pair(CKValue, CKValue));
-        table.getHtblPageIdPagesPaths().put(id, "page-" + id);
-        table.getHtblKeyPageId().put(CKValue, id);
-    }
-
     public void newPageInit(Hashtable<String, Object> tuple, Table table) throws IOException {
         Page newPage = new Page();
         newPage.getTuples().add(tuple);
-        initPageHtbls(newPage, table);
+        int id = newPage.getId();
+
+        Object ckValue = tuple.get(table.getClusteringKey());
+
+        table.getHtblPageIdCurrPageSize().put(id, 1);
+        table.getHtblPageIdMinMax().put(id, new Pair(ckValue, ckValue));
+        table.getHtblPageIdPagesPaths().put(id, "page-" + id);
+        table.getHtblKeyPageId().put(ckValue, id);
 
         newPage.serialize();
     }
@@ -258,7 +364,6 @@ public class DBApp {
         return ((Comparable) object).compareTo(parsed);
     }
 
-
     public void writeInCSV(String strTableName,
                            String strClusteringKeyColumn,
                            Hashtable<String, String> htblColNameType,
@@ -298,28 +403,43 @@ public class DBApp {
         Hashtable<String, Object> tuple1 = new Hashtable<>();
         tuple1.put("age", 1);
         tuple1.put("name", "Kord");
+        tuple1.put("gpa", 1.6);
+
         Hashtable<String, Object> tuple2 = new Hashtable<>();
         tuple2.put("age", 2);
         tuple2.put("name", "Omar");
+        tuple2.put("gpa", 4.0);
+
         Hashtable<String, Object> tuple3 = new Hashtable<>();
         tuple3.put("age", 3);
         tuple3.put("name", "Ahmed");
+        tuple3.put("gpa", 0.9);
+
         Hashtable<String, Object> tuple4 = new Hashtable<>();
         tuple4.put("age", 4);
         tuple4.put("name", "Malak");
+        tuple4.put("gpa", 2.3);
 
         Hashtable<String, Object> tuple5 = new Hashtable<>();
         tuple5.put("age", 5);
         tuple5.put("name", "Menna");
+        tuple5.put("gpa", 0.8);
+
         Hashtable<String, Object> tuple6 = new Hashtable<>();
         tuple6.put("age", 6);
         tuple6.put("name", "Lobna");
+        tuple6.put("gpa", 1.4);
+
         Hashtable<String, Object> tuple7 = new Hashtable<>();
         tuple7.put("age", 7);
         tuple7.put("name", "boni");
+        tuple7.put("gpa", 3.2);
+
         Hashtable<String, Object> tuple8 = new Hashtable<>();
         tuple8.put("age", 8);
         tuple8.put("name", "nada");
+        tuple8.put("gpa", 2.5);
+
         Hashtable<String, Object> tuple9 = new Hashtable<>();
         tuple9.put("age", 9);
         tuple9.put("name", "noura");
@@ -334,37 +454,33 @@ public class DBApp {
         Hashtable<String, String> htblColNameType = new Hashtable<>();
         htblColNameType.put("age", "java.lang.Integer");
         htblColNameType.put("name", "java.lang.String");
+        htblColNameType.put("gpa", "java.lang.Double");
 
         Hashtable<String, String> htblColNameMin = new Hashtable<>();
         htblColNameMin.put("age", "1");
         htblColNameMin.put("name", "ZZZZZZZZZZ");
+        htblColNameMin.put("gpa", "0.7");
 
         Hashtable<String, String> htblColNameMax = new Hashtable<>();
         htblColNameMax.put("age", "40");
         htblColNameMax.put("name", "ZZZZZZZZZ");
+        htblColNameMax.put("gpa", "4.0");
 
         dbApp.createTable("Students", "age", htblColNameType, htblColNameMin, htblColNameMax);
 
         dbApp.insertIntoTable("Students", tuple2);
         dbApp.insertIntoTable("Students", tuple6);
-        dbApp.insertIntoTable("Students", tuple5);
         dbApp.insertIntoTable("Students", tuple7);
-
-//        dbApp.insertIntoTable("Students",tuple3);
-
-        dbApp.insertIntoTable("Students", tuple4);
-        dbApp.insertIntoTable("Students", tuple3);
-        dbApp.insertIntoTable("Students", tuple10);
-        dbApp.insertIntoTable("Students", tuple9);
         dbApp.insertIntoTable("Students", tuple8);
         dbApp.insertIntoTable("Students", tuple1);
+        dbApp.insertIntoTable("Students", tuple3);
+        dbApp.insertIntoTable("Students", tuple5);
 
-//        dbApp.insertIntoTable("Students",tuple4);
-//        dbApp.insertIntoTable("Students",tuple3);
-//
-//
-//
-//        dbApp.insertIntoTable("Students",tuple1);
+        Hashtable<String, Object> updateHtbl = new Hashtable<>();
+        updateHtbl.put("gpa", 0.7);
+        updateHtbl.put("name", "Lolosh");
+
+        dbApp.updateTable("Students", "6", updateHtbl);
 
 
         Table table = Table.deserialize("Students");
@@ -376,93 +492,6 @@ public class DBApp {
             System.out.println("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
             p.serialize();
         }
-        //System.out.println(table.getHtblPageIdPagesPaths().size() );
-
-
-        Table table1 = Table.deserialize("Professors");
-        System.out.println(table1);
-    }
-
-    public static <K, V> void printHashtableWithBorder(Hashtable<K, V> hashtable) {
-        // find the maximum length of the keys and values in the hashtable
-        int maxKeyLength = 0;
-        int maxValueLength = 0;
-        for (K key : hashtable.keySet()) {
-            int keyLength = key.toString().length();
-            if (keyLength > maxKeyLength) {
-                maxKeyLength = keyLength;
-            }
-
-            int valueLength = hashtable.get(key).toString().length();
-            if (valueLength > maxValueLength) {
-                maxValueLength = valueLength;
-            }
-        }
-
-        // build the output string
-        StringBuilder sb = new StringBuilder();
-        String borderHorizontal = "+" + "-".repeat(maxKeyLength + 2) + "+" + "-".repeat(maxValueLength + 2) + "+\n";
-        sb.append(borderHorizontal);
-        sb.append(String.format("| %-" + maxKeyLength + "s | %-" + maxValueLength + "s |\n", "Col", "Val"));
-        sb.append(borderHorizontal);
-        for (K key : hashtable.keySet()) {
-            V value = hashtable.get(key);
-            sb.append(String.format("| %-" + maxKeyLength + "s | %-" + maxValueLength + "s |\n", key.toString(), value.toString()));
-        }
-        sb.append(borderHorizontal);
-
-        // print the output string
-        System.out.print(sb.toString());
-    }
-
-    private static void printBorder(int maxKeyLength, int maxValueLength) {
-        int totalLength = maxKeyLength + maxValueLength + 3;
-        System.out.print("+");
-        for (int i = 0; i < totalLength; i++) {
-            System.out.print("-");
-        }
-        System.out.println("+");
-    }
-
-    public static void printHashtable(Hashtable<?, ?> hashtable) {
-        // Find the length of the longest key and value in the hashtable
-        int maxKeyLength = 0;
-        int maxValueLength = 0;
-        for (Map.Entry<?, ?> entry : hashtable.entrySet()) {
-            maxKeyLength = Math.max(maxKeyLength, entry.getKey().toString().length());
-            maxValueLength = Math.max(maxValueLength, entry.getValue().toString().length());
-        }
-
-        // Print the top border
-        printBorder(maxKeyLength, maxValueLength);
-
-        // Print the keys in the top row
-        System.out.print("|");
-        for (Map.Entry<?, ?> entry : hashtable.entrySet()) {
-            String key = entry.getKey().toString();
-            System.out.printf(" %-" + maxKeyLength + "s |", key);
-        }
-        System.out.println();
-
-        // Print the middle border
-        printBorder(maxKeyLength, maxValueLength);
-
-        // Print the values in the bottom row
-        System.out.print("|");
-        for (Map.Entry<?, ?> entry : hashtable.entrySet()) {
-            String value = entry.getValue().toString();
-            System.out.printf(" %-" + maxValueLength + "s |", value);
-        }
-        System.out.println();
-
-        // Print the bottom border
-        printBorder(maxKeyLength, maxValueLength);
-    }
-
-    public static void printVector(Vector<Hashtable<String, Object>> vector) {
-        for (Hashtable<String, Object> h : vector)
-            printHashtable(h);
-        System.out.println();
     }
 
 
