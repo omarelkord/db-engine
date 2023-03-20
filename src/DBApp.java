@@ -61,6 +61,46 @@ public class DBApp {
         writeInCSV(strTableName, strClusteringKeyColumn, htblColNameType, htblColNameMin, htblColNameMax); //a method that will write in the csv
     }
 
+    public void writeInCSV(String strTableName,
+                           String strClusteringKeyColumn,
+                           Hashtable<String, String> htblColNameType,
+                           Hashtable<String, String> htblColNameMin,
+                           Hashtable<String, String> htblColNameMax) throws FileNotFoundException {
+        PrintWriter pw = new PrintWriter(new FileOutputStream("metadata.csv", true));
+        String row = "";
+        String isClusteringKey;
+        for (String key : htblColNameType.keySet()) {
+            if (key.equals(strClusteringKeyColumn))
+                isClusteringKey = "True";
+            else
+                isClusteringKey = "False";
+            row = strTableName + "," + key + "," + htblColNameType.get(key) + "," + isClusteringKey + ","
+                    + "null," + "null," + htblColNameMin.get(key) + "," + htblColNameMax.get(key);
+            pw.append(row);
+
+            row = "\r\n";
+            pw.append(row);
+        }
+        pw.close();
+    }
+
+    public void insertIntoTable(String strTableName,
+                                Hashtable<String, Object> htblColNameValue) throws Exception {
+
+        verifyInsert(strTableName, htblColNameValue);
+        Table table = Table.deserialize(strTableName);
+        Comparable ckValue = (Comparable) htblColNameValue.get(table.getClusteringKey());
+        Page locatedPage = table.getLocatedPage(ckValue, true);
+
+        //HANDLES BOTH CASES: A) THERE ARE ZERO PAGES   B) THERE IS NO VIABLE PAGE TO INSERT IN
+        if (locatedPage == null)
+            newPageInit(htblColNameValue, table);
+        else
+            insertAndShift(htblColNameValue, locatedPage.getId(), table);
+
+        table.serialize();
+    }
+
     public void verifyInsert(String strTableName, Hashtable<String, Object> htblColNameValue) throws Exception {
 
         if (!tableNames.contains(strTableName))
@@ -114,21 +154,47 @@ public class DBApp {
         br.close();
     }
 
-    public void insertIntoTable(String strTableName,
-                                Hashtable<String, Object> htblColNameValue) throws Exception {
 
-        verifyInsert(strTableName, htblColNameValue);
-        Table table = Table.deserialize(strTableName);
-        Comparable ckValue = (Comparable) htblColNameValue.get(table.getClusteringKey());
-        Page locatedPage = table.getLocatedPage(ckValue, true);
+    public void insertAndShift(Hashtable<String, Object> tuple, Integer id, Table table) throws IOException, ClassNotFoundException, DBAppException {
 
-        //HANDLES BOTH CASES: A) THERE ARE ZERO PAGES   B) THERE IS NO VIABLE PAGE TO INSERT IN
-        if (locatedPage == null)
-            newPageInit(htblColNameValue, table);
-        else
-            insertAndShift(htblColNameValue, locatedPage.getId(), table);
+        if (!table.hasPage(id)) {
+            newPageInit(tuple, table);
+            return;
+        }
 
-        table.serialize();
+        Page page = Page.deserialize(id);
+        String ckName = table.getClusteringKey();
+        Object ckValue = tuple.get(ckName);
+
+        binaryInsert(tuple, page, ckName);
+
+        if (page.isOverFlow()) {
+            Hashtable<String, Object> lastTuple = page.getTuples().remove(page.getTuples().size() - 1);
+            insertAndShift(lastTuple, id + 1, table);
+        }
+
+        //hashtable updates
+        table.getHtblKeyPageId().put(ckValue, id);
+        setMinMax(table, page);
+        page.serialize();
+    }
+
+    public static void binaryInsert(Hashtable<String, Object> tuple, Page page, String ck) {
+        Vector<Hashtable<String, Object>> tuples = page.getTuples();
+
+        int left = 0;
+        int right = tuples.size() - 1;
+
+        while (left <= right) {
+            int mid = (left + right) / 2;
+
+            if (((Comparable) tuples.get(mid).get(ck)).compareTo(tuple.get(ck)) > 0)
+                right = mid - 1;
+            else
+                left = mid + 1;
+        }
+
+        tuples.add(left, tuple);
     }
 
     public void deleteFromTable(String strTableName,
@@ -143,6 +209,29 @@ public class DBApp {
         // 4) SHIFT UP ALL PAGES STARTING FROM LAST TILL BASE CASE
         // 5) CORNER CASE: IF PAGE BECOMES EMPTY => DELETE PAGE => DELETE IN HTBLS
         // 6) UPDATE ALL PG HTBLS
+    }
+
+
+    public void updateTable(String strTableName,
+                            String strClusteringKeyValue,
+                            Hashtable<String, Object> htblColNameValue) throws Exception {
+
+        verifyUpdate(strTableName, strClusteringKeyValue, htblColNameValue);
+        Table table = Table.deserialize(strTableName);
+        Comparable ckValue = (Comparable) parse(strClusteringKeyValue, table.getCkType());
+
+        Page locatedPage = table.getLocatedPage(ckValue, false);
+
+        if (locatedPage == null)
+            return;
+
+        int tupleIndex = binarySearch(locatedPage, table.getClusteringKey(), ckValue);
+        Hashtable<String, Object> tupleToUpdate = locatedPage.getTuples().get(tupleIndex);
+
+        tupleToUpdate.putAll(htblColNameValue);
+        setMinMax(table, locatedPage);
+        locatedPage.serialize();
+        table.serialize();
     }
 
     public void verifyUpdate(String strTableName,
@@ -200,28 +289,6 @@ public class DBApp {
         }
         table.serialize();
         br.close();
-    }
-
-    public void updateTable(String strTableName,
-                            String strClusteringKeyValue,
-                            Hashtable<String, Object> htblColNameValue) throws Exception {
-
-        verifyUpdate(strTableName, strClusteringKeyValue, htblColNameValue);
-        Table table = Table.deserialize(strTableName);
-        Comparable ckValue = (Comparable) parse(strClusteringKeyValue, table.getCkType());
-
-        Page locatedPage = table.getLocatedPage(ckValue, false);
-
-        if (locatedPage == null)
-            return;
-
-        int tupleIndex = binarySearch(locatedPage, table.getClusteringKey(), ckValue);
-        Hashtable<String, Object> tupleToUpdate = locatedPage.getTuples().get(tupleIndex);
-
-        tupleToUpdate.putAll(htblColNameValue);
-        setMinMax(table, locatedPage);
-        locatedPage.serialize();
-        table.serialize();
     }
 
     public int binarySearch(Page page, String ckName, Comparable ckValue) {
@@ -284,30 +351,6 @@ public class DBApp {
         page.serialize();
     }
 
-    public void insertAndShift(Hashtable<String, Object> tuple, Integer id, Table table) throws IOException, ClassNotFoundException, DBAppException {
-
-        if (!table.hasPage(id)) {
-            newPageInit(tuple, table);
-            return;
-        }
-
-        Page page = Page.deserialize(id);
-        String ckName = table.getClusteringKey();
-        Object ckValue = tuple.get(ckName);
-
-        binaryInsert(tuple, page, ckName);
-
-        if (page.isOverFlow()) {
-            Hashtable<String, Object> lastTuple = page.getTuples().remove(page.getTuples().size() - 1);
-            insertAndShift(lastTuple, id + 1, table);
-        }
-
-        //hashtable updates
-        table.getHtblKeyPageId().put(ckValue, id);
-        setMinMax(table, page);
-        page.serialize();
-    }
-
 
     public void newPageInit(Hashtable<String, Object> tuple, Table table) throws IOException {
         Page newPage = new Page();
@@ -324,24 +367,6 @@ public class DBApp {
         newPage.serialize();
     }
 
-
-    public static void binaryInsert(Hashtable<String, Object> tuple, Page page, String ck) {
-        Vector<Hashtable<String, Object>> tuples = page.getTuples();
-
-        int left = 0;
-        int right = tuples.size() - 1;
-
-        while (left <= right) {
-            int mid = (left + right) / 2;
-
-            if (((Comparable) tuples.get(mid).get(ck)).compareTo(tuple.get(ck)) > 0)
-                right = mid - 1;
-            else
-                left = mid + 1;
-        }
-
-        tuples.add(left, tuple);
-    }
 
     public static boolean sameType(Object data, String dataType) throws ClassNotFoundException {
         return data.getClass().equals(Class.forName(dataType));
@@ -364,28 +389,6 @@ public class DBApp {
         return ((Comparable) object).compareTo(parsed);
     }
 
-    public void writeInCSV(String strTableName,
-                           String strClusteringKeyColumn,
-                           Hashtable<String, String> htblColNameType,
-                           Hashtable<String, String> htblColNameMin,
-                           Hashtable<String, String> htblColNameMax) throws FileNotFoundException {
-        PrintWriter pw = new PrintWriter(new FileOutputStream("metadata.csv", true));
-        String row = "";
-        String isClusteringKey;
-        for (String key : htblColNameType.keySet()) {
-            if (key.equals(strClusteringKeyColumn))
-                isClusteringKey = "True";
-            else
-                isClusteringKey = "False";
-            row = strTableName + "," + key + "," + htblColNameType.get(key) + "," + isClusteringKey + ","
-                    + "null," + "null," + htblColNameMin.get(key) + "," + htblColNameMax.get(key);
-            pw.append(row);
-
-            row = "\r\n";
-            pw.append(row);
-        }
-        pw.close();
-    }
 
     public static Properties readConfig(String path) throws IOException {
         Properties properties = new Properties();

@@ -9,17 +9,16 @@ public class Page implements Serializable {
     private static String PAGE_DIRECTORY = "D:\\db-engine\\Pages\\";
 
 
-    public int getMaxPageSize() {
-        return maxPageSize;
-    }
-
-
     public Page() throws IOException{
         tuples = new Vector<>();
         this.id = maxIDSoFar++;
 
         maxPageSize = Integer.parseInt(readConfig("DBApp.config").getProperty("MaximumRowsCountinTablePage"));
     }
+    public int getMaxPageSize() {
+        return maxPageSize;
+    }
+
 
     public static int getMaxIDSoFar() {
         return maxIDSoFar;
@@ -76,7 +75,5 @@ public class Page implements Serializable {
     public boolean isOverFlow(){
         return (this.tuples.size() > maxPageSize);
     }
-    public static void main(String[] args) throws IOException ,ClassNotFoundException {
-
-    }
+    
 }

@@ -13,16 +13,8 @@ public class Table implements Serializable {
     private Hashtable<Integer, Integer> htblPageIdCurrPageSize;
     private String clusteringKey;
     private String ckType;
-
-    public int getNumOfCols() {
-        return numOfCols;
-    }
-
-    public void setNumOfCols(int numOfCols) {
-        this.numOfCols = numOfCols;
-    }
-
     private int numOfCols;
+    public static final String TABLE_DIRECTORY = "D:\\db-engine\\Tables\\";
 
     public Table(String strTableName, String strClusteringKeyColumn) {
         this.name = strTableName;
@@ -33,6 +25,16 @@ public class Table implements Serializable {
         htblKeyPageId = new Hashtable<>();
     }
 
+    public int getNumOfCols() {
+        return numOfCols;
+    }
+
+    public void setNumOfCols(int numOfCols) {
+        this.numOfCols = numOfCols;
+    }
+
+
+
     public String getCkType() {
         return ckType;
     }
@@ -40,8 +42,6 @@ public class Table implements Serializable {
     public void setCkType(String ckType) {
         this.ckType = ckType;
     }
-
-    public static final String TABLE_DIRECTORY = "D:\\db-engine\\Tables\\";
 
 
     public Hashtable<Object, Integer> getHtblKeyPageId() {
@@ -69,36 +69,6 @@ public class Table implements Serializable {
         return table;
     }
 
-//    public String getClusteringKey() throws IOException, DBAppException {
-//
-//        BufferedReader br = new BufferedReader(new FileReader(DBApp.METADATA_PATH));
-//
-//        String line = br.readLine();
-//        String[] content = line.split(",");
-//
-//        String clusteringKey="";
-//
-//        while (line != null) {
-//
-//            String tableName = content[0];
-//            String colName = content[1];
-//            String isClusteringKey = content[3];
-//
-//            if (!tableName.equals(this.getName())) {
-//                line = br.readLine();
-//                continue;
-//            }
-//
-//            if (Boolean.parseBoolean(isClusteringKey))
-//                clusteringKey = colName;
-//
-//            line = br.readLine();
-//        }
-//
-//        br.close();
-//
-//        return clusteringKey;
-//    }
 
     public Page getLocatedPage(Comparable CKValue, boolean toInsert) throws IOException, ClassNotFoundException {
         Page locatedPage = null;
@@ -184,8 +154,4 @@ public class Table implements Serializable {
         return this.getHtblPageIdPagesPaths().get(id) != null;
     }
 
-    public static void main(String[] args) {
-
-
-    }
 }
