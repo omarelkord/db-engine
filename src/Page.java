@@ -4,13 +4,20 @@ public class Page implements Serializable {
     private Vector<Hashtable<String,Object>> tuples;
     private static int maxIDSoFar = 0;
     private int id;
-    private int currPageSize;
     private static int maxPageSize;
+
+    private static String PAGE_DIRECTORY = "D:\\db-engine\\Pages\\";
+
+
+    public int getMaxPageSize() {
+        return maxPageSize;
+    }
+
 
     public Page() throws IOException{
         tuples = new Vector<>();
         this.id = maxIDSoFar++;
-        currPageSize = 0;
+
         maxPageSize = Integer.parseInt(readConfig("DBApp.config").getProperty("MaximumRowsCountinTablePage"));
     }
 
@@ -38,15 +45,15 @@ public class Page implements Serializable {
         return tuples;
     }
 
-    public void serialize(String filename) throws IOException {
-        ObjectOutputStream outputStream = new ObjectOutputStream(new FileOutputStream(filename));
+    public void serialize() throws IOException {
+        ObjectOutputStream outputStream = new ObjectOutputStream(new FileOutputStream(PAGE_DIRECTORY + "page-" + this.getId()));
         outputStream.writeObject(this);
         outputStream.close();
     }
 
     // Method to deserialize the Page object
-    public static Page deserialize(String filename) throws IOException, ClassNotFoundException {
-        ObjectInputStream inputStream = new ObjectInputStream(new FileInputStream(filename));
+    public static Page deserialize(Integer id) throws IOException, ClassNotFoundException {
+        ObjectInputStream inputStream = new ObjectInputStream(new FileInputStream(PAGE_DIRECTORY + "page-" + id));
         Page page = (Page) inputStream.readObject();
         inputStream.close();
         return page;
@@ -61,22 +68,15 @@ public class Page implements Serializable {
     }
 
     public boolean isFull(){
-        if(currPageSize == maxPageSize)
+        if(this.tuples.size() == maxPageSize)
             return true;
         return false;
     }
+
+    public boolean isOverFlow(){
+        return (this.tuples.size() > maxPageSize);
+    }
     public static void main(String[] args) throws IOException ,ClassNotFoundException {
-        Page page = new Page();
-        Vector<Hashtable<String,Object>> tuples = new Vector<>();
-//        tuples.add("Hello");
-//        tuples.add("World");
-        page.setTuples(tuples);
 
-        // Serialize the Page object to a binary file
-        page.serialize("C:\\Users\\Ahmed Labib\\OneDrive\\Desktop\\guc\\6th Semester\\Database\\project\\test.bin");
-
-        // Deserialize the Page object from the binary file
-        Page deserializedPage = Page.deserialize("C:\\Users\\Ahmed Labib\\OneDrive\\Desktop\\guc\\6th Semester\\Database\\project\\test.bin");
-        System.out.println(deserializedPage.getTuples());
     }
 }
