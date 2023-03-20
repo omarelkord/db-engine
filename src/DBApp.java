@@ -315,8 +315,10 @@ public class DBApp {
         tuple2.put("name", "Omar");
         Hashtable<String,Object> tuple3 = new Hashtable<>();
         tuple3.put("age",4);
+        tuple3.put("name", "Boni");
         Hashtable<String,Object> tuple4 = new Hashtable<>();
         tuple4.put("age",6);
+        tuple4.put("name", "Mal");
         Hashtable<String,Object> tuple5 = new Hashtable<>();
         tuple5.put("age",9);
         Hashtable<String,Object> tuple6 = new Hashtable<>();
@@ -341,6 +343,8 @@ public class DBApp {
 
         dbApp.insertIntoTable("Students",tuple);
         dbApp.insertIntoTable("Students",tuple2);
+        dbApp.insertIntoTable("Students",tuple3);
+        dbApp.insertIntoTable("Students",tuple4);
 
         Table table = Table.deserialize("Students");
 
