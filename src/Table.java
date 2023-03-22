@@ -80,19 +80,14 @@ public class Table implements Serializable {
             Object max = pair.getMax();
 
             Page nextPage = null;
-            boolean isPageNull = false;
-            try {
-                nextPage = Page.deserialize(id + 1);
-            } catch (Exception e) {
-                isPageNull = true;
-            }
             Pair nextPair = null;
             Object nextMin = null;
-
-            if (!isPageNull) {
-                nextPair = this.getHtblPageIdMinMax().get(id + 1);
+            if(hasPage(id+1)){
+                nextPage = Page.deserialize(getNextID(currPage));
+                nextPair = this.getHtblPageIdMinMax().get(getNextID(currPage));
                 nextMin = nextPair.getMin();
             }
+
 
             // NOT FULL:
             // ) less than min =>
@@ -101,8 +96,11 @@ public class Table implements Serializable {
             // )    if there's room ==> insert and update max
             // )    if full ==> next iteration (if not last iteration)
 
+            Boolean islastPage = getNextID(currPage) == -1;
+
             boolean insFlag = toInsert && (CKValue.compareTo(min) < 0 || (CKValue.compareTo(min) > 0 && CKValue.compareTo(max) < 0)
-                    || ((CKValue.compareTo(max) > 0 && !currPage.isFull()) && (!isPageNull && CKValue.compareTo((Comparable) nextMin) < 0)));
+                    || ((CKValue.compareTo(max) > 0 && !currPage.isFull()) &&
+                    ((hasPage(getNextID(currPage)) && CKValue.compareTo((Comparable) nextMin) < 0) || islastPage)));
 
             boolean updateFlag = !toInsert && (CKValue.compareTo(min) >= 0 && CKValue.compareTo(max) <= 0);
 
