@@ -19,6 +19,7 @@ public class DBApp {
     }
 
     public void init() throws IOException {
+//        tableNames = this.getTableNames();
         tableNames = new Vector<>();
         dataTypes = new Vector<>();
         Collections.addAll(dataTypes, "java.lang.Integer", "java.lang.Double", "java.lang.String", "java.util.Date");
@@ -395,6 +396,31 @@ public class DBApp {
         return properties;
     }
 
+    public Vector<String> getTableNames() throws IOException {
+
+        Vector<String> tableNames = new Vector<>();
+
+        BufferedReader br = new BufferedReader(new FileReader(METADATA_PATH));
+        String line = br.readLine();
+
+        while (line != null) {
+            String[] content = line.split(",");
+            String tableName = content[0];
+            String colName = content[1];
+            String colType = content[2];
+            String min = content[6];
+            String max = content[7];
+
+            if (!tableNames.contains(tableName))
+                tableNames.add(tableName);
+
+            line = br.readLine();
+        }
+
+        br.close();
+        return tableNames;
+    }
+
     public static void main(String[] args) throws Exception {
 
         // Hashtable<String,Object> tuple = new Hashtable<>();
@@ -443,10 +469,12 @@ public class DBApp {
         Hashtable<String, Object> tuple9 = new Hashtable<>();
         tuple9.put("age", 9);
         tuple9.put("name", "noura");
+        tuple5.put("gpa", 3.4);
+
         Hashtable<String, Object> tuple10 = new Hashtable<>();
         tuple10.put("age", 10);
         tuple10.put("name", "ashry");
-
+        tuple10.put("gpa", 0.9);
 
         DBApp dbApp = new DBApp();
         dbApp.init();
@@ -475,12 +503,9 @@ public class DBApp {
         dbApp.insertIntoTable("Students", tuple1);
         dbApp.insertIntoTable("Students", tuple3);
         dbApp.insertIntoTable("Students", tuple5);
-
-        Hashtable<String, Object> updateHtbl = new Hashtable<>();
-        updateHtbl.put("gpa", 0.7);
-        updateHtbl.put("name", "Lolosh");
-
-        dbApp.updateTable("Students", "6", updateHtbl);
+        dbApp.insertIntoTable("Students", tuple4);
+        dbApp.insertIntoTable("Students", tuple9);
+        dbApp.insertIntoTable("Students", tuple10);
 
 
         Table table = Table.deserialize("Students");
@@ -494,5 +519,30 @@ public class DBApp {
         }
     }
 
+    public static void main2(String[] args) throws IOException, DBAppException {
+        DBApp dbApp = new DBApp();
+        dbApp.init();
+
+        Hashtable<String, String> htblColNameType = new Hashtable<>();
+        htblColNameType.put("age", "java.lang.Integer");
+        htblColNameType.put("name", "java.lang.String");
+        htblColNameType.put("gpa", "java.lang.Double");
+
+        Hashtable<String, String> htblColNameMin = new Hashtable<>();
+        htblColNameMin.put("age", "1");
+        htblColNameMin.put("name", "ZZZZZZZZZZ");
+        htblColNameMin.put("gpa", "0.7");
+
+        Hashtable<String, String> htblColNameMax = new Hashtable<>();
+        htblColNameMax.put("age", "40");
+        htblColNameMax.put("name", "ZZZZZZZZZ");
+        htblColNameMax.put("gpa", "4.0");
+
+        dbApp.createTable("Student", "age", htblColNameType, htblColNameMin, htblColNameMax);
+        dbApp.createTable("Instructor", "age", htblColNameType, htblColNameMin, htblColNameMax);
+        dbApp.createTable("Staff", "age", htblColNameType, htblColNameMin, htblColNameMax);
+
+        dbApp.getTableNames();
+    }
 
 }
