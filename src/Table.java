@@ -89,7 +89,8 @@ public class Table implements Serializable {
             // )    if there's room ==> insert and update max
             // )    if full ==> next iteration (if not last iteration)
 
-            boolean insFlag = toInsert && (CKValue.compareTo(min) < 0 || (CKValue.compareTo(min) > 0 && CKValue.compareTo(max) < 0)
+            boolean insFlag = toInsert && (CKValue.compareTo(min) < 0 || (CKValue.compareTo(min) > 0
+                    && CKValue.compareTo(max) < 0)
                     || (CKValue.compareTo(max) > 0 && !currPage.isFull()));
 
             boolean updateFlag = !toInsert && (CKValue.compareTo(min) >= 0 && CKValue.compareTo(max) <= 0);
