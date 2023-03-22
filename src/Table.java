@@ -6,10 +6,7 @@ import java.util.Vector;
 
 public class Table implements Serializable {
     private String name;
-    private Hashtable<Integer, String> htblPageIdPagesPaths;
     private Hashtable<Integer, Pair> htblPageIdMinMax;
-    private Hashtable<Object, Integer> htblKeyPageId;
-    private Hashtable<Integer, Integer> htblPageIdCurrPageSize;
     private String clusteringKey;
     private String ckType;
     private int numOfCols;
@@ -19,16 +16,14 @@ public class Table implements Serializable {
     public Table(String strTableName, String strClusteringKeyColumn) {
         this.name = strTableName;
         this.clusteringKey = strClusteringKeyColumn;
-        htblPageIdPagesPaths = new Hashtable<>();
         htblPageIdMinMax = new Hashtable<>();
-        htblPageIdCurrPageSize = new Hashtable<>();
-        htblKeyPageId = new Hashtable<>();
         maxIDsoFar = -1;
     }
 
     public int getNumOfCols() {
         return numOfCols;
     }
+
     public void setNumOfCols(int numOfCols) {
         this.numOfCols = numOfCols;
     }
@@ -41,25 +36,15 @@ public class Table implements Serializable {
         this.ckType = ckType;
     }
 
-
-    public Hashtable<Object, Integer> getHtblKeyPageId() {
-        return htblKeyPageId;
-    }
-
-    public void setHtblKeyPageId(Hashtable<Object, Integer> htblKeyPageId) {
-        this.htblKeyPageId = htblKeyPageId;
-    }
-
-
     public void serialize() throws IOException {
-        ObjectOutputStream outputStream = new ObjectOutputStream(new FileOutputStream(TABLE_DIRECTORY + this.getName() + ".class"));
+        ObjectOutputStream outputStream = new ObjectOutputStream(new FileOutputStream(TABLE_DIRECTORY + this.getName() + ".ser"));
         outputStream.writeObject(this);
         outputStream.close();
     }
 
 
     public static Table deserialize(String tableName) throws IOException, ClassNotFoundException {
-        ObjectInputStream inputStream = new ObjectInputStream(new FileInputStream(TABLE_DIRECTORY + tableName + ".class"));
+        ObjectInputStream inputStream = new ObjectInputStream(new FileInputStream(TABLE_DIRECTORY + tableName + ".ser"));
         Table table = (Table) inputStream.readObject();
 
         inputStream.close();
@@ -67,14 +52,14 @@ public class Table implements Serializable {
     }
 
 
-    public Page getLocatedPage(Comparable CKValue, boolean toInsert) throws IOException, ClassNotFoundException {
+    public Page getPageToInsert(Comparable CKValue) throws IOException, ClassNotFoundException {
         Page locatedPage = null;
-//        int currPageId = 0;
+
         Vector<Integer> sortedID = new Vector<>(this.getHtblPageIdMinMax().keySet());
         Collections.sort(sortedID);
 
         for (Integer id : sortedID) {
-            Page currPage = Page.deserialize(id);
+            Page currPage = Page.deserialize(this.getName(), id);
             Pair pair = this.getHtblPageIdMinMax().get(id);
             Object min = pair.getMin();
             Object max = pair.getMax();
@@ -82,29 +67,20 @@ public class Table implements Serializable {
             Page nextPage = null;
             Pair nextPair = null;
             Object nextMin = null;
-            if(hasPage(id+1)){
-                nextPage = Page.deserialize(getNextID(currPage));
+
+            if (hasPage(getNextID(currPage))) {
+                nextPage = Page.deserialize(this.getName(), getNextID(currPage));
                 nextPair = this.getHtblPageIdMinMax().get(getNextID(currPage));
                 nextMin = nextPair.getMin();
             }
 
-
-            // NOT FULL:
-            // ) less than min =>
-            // ) else => less than max (range) => insert same page
-            // ) else if greater than max
-            // )    if there's room ==> insert and update max
-            // )    if full ==> next iteration (if not last iteration)
-
             Boolean islastPage = getNextID(currPage) == -1;
 
-            boolean insFlag = toInsert && (CKValue.compareTo(min) < 0 || (CKValue.compareTo(min) > 0 && CKValue.compareTo(max) < 0)
+            boolean insFlag = CKValue.compareTo(min) < 0 || (CKValue.compareTo(min) > 0 && CKValue.compareTo(max) < 0)
                     || ((CKValue.compareTo(max) > 0 && !currPage.isFull()) &&
-                    ((hasPage(getNextID(currPage)) && CKValue.compareTo((Comparable) nextMin) < 0) || islastPage)));
+                    ((hasPage(getNextID(currPage)) && CKValue.compareTo((Comparable) nextMin) < 0) || islastPage));
 
-            boolean updateFlag = !toInsert && (CKValue.compareTo(min) >= 0 && CKValue.compareTo(max) <= 0);
-
-            if (insFlag || updateFlag) {
+            if (insFlag) {
                 locatedPage = currPage;
                 break;
             }
@@ -114,13 +90,14 @@ public class Table implements Serializable {
 
         return locatedPage;
     }
-    public int getNextID(Page page){
-        Vector<Integer> idsInTable = new Vector<>(this.htblPageIdPagesPaths.keySet());
+
+    public int getNextID(Page page) {
+        Vector<Integer> idsInTable = new Vector<>(this.htblPageIdMinMax.keySet());
         Collections.sort(idsInTable);
 
         int index = idsInTable.indexOf(page.getId());
 
-        if(index == idsInTable.size() - 1)
+        if (index == idsInTable.size() - 1)
             return -1;
 
         return idsInTable.get(1 + index);
@@ -134,42 +111,45 @@ public class Table implements Serializable {
         this.maxIDsoFar = maxIDsoFar;
     }
 
-    public int binarySearchInTable(Comparable value) throws Exception{
-        Vector<Integer> sortedID = new Vector<Integer>(this.getHtblPageIdMinMax().keySet());
+    public int binarySearchInTable(Comparable value) throws Exception {
+        Vector<Integer> sortedID = new Vector<Integer>(this.htblPageIdMinMax.keySet());
         Collections.sort(sortedID);
 
         int left = 0;
-        int right = sortedID.size()-1;
+        int right = sortedID.size() - 1;
 
-        while (left<=right) {
-            int mid = (right + left)/2;
-            Pair pair = this.getHtblPageIdMinMax().get(mid);
+        while (left <= right) {
+            int mid = (right + left) / 2;
+            Pair pair = this.getHtblPageIdMinMax().get(sortedID.get(mid));
             Object min = pair.getMin();
             Object max = pair.getMax();
 
-            if(value.compareTo(min)>=0 && value.compareTo(max)<=0)
-                return mid;
-            if(value.compareTo(min)<0)
-                right= mid-1;
+            if (value.compareTo(min) >= 0 && value.compareTo(max) <= 0)
+                return sortedID.get(mid);
+            if (value.compareTo(min) < 0)
+                right = mid - 1;
             else
-                left = mid+1;
+                left = mid + 1;
         }
         return -1;
     }
+
+    public Page getPageToModify(Comparable ckValue) throws Exception {
+        int locatedPageID = this.binarySearchInTable(((Comparable) ckValue));
+
+        if (locatedPageID == -1)
+            throw new DBAppException("This tuple does not exist");
+
+        return Page.deserialize(this.getName(), locatedPageID);
+    }
+
+
     public String getName() {
         return name;
     }
 
     public void setName(String name) {
         this.name = name;
-    }
-
-    public Hashtable<Integer, String> getHtblPageIdPagesPaths() {
-        return htblPageIdPagesPaths;
-    }
-
-    public void setHtblPageIdPagesPaths(Hashtable<Integer, String> htblPageIdPagesPaths) {
-        this.htblPageIdPagesPaths = htblPageIdPagesPaths;
     }
 
     public Hashtable<Integer, Pair> getHtblPageIdMinMax() {
@@ -180,14 +160,6 @@ public class Table implements Serializable {
         this.htblPageIdMinMax = htblPageIdMaxMin;
     }
 
-    public Hashtable<Integer, Integer> getHtblPageIdCurrPageSize() {
-        return htblPageIdCurrPageSize;
-    }
-
-    public void setHtblPageIdCurrPageSize(Hashtable<Integer, Integer> htblPageIdCurrPageSize) {
-        this.htblPageIdCurrPageSize = htblPageIdCurrPageSize;
-    }
-
     public String getClusteringKey() {
         return clusteringKey;
     }
@@ -196,11 +168,28 @@ public class Table implements Serializable {
         this.clusteringKey = clusteringKey;
     }
 
-    public String getPagePath(int id) {
-        return this.getHtblPageIdPagesPaths().get(id);
-    }
 
     public boolean hasPage(int id) {
-        return this.getHtblPageIdPagesPaths().get(id) != null;
+        return this.getHtblPageIdMinMax().get(id) != null;
+    }
+
+    public void updatePageDelete(Page locatedPage) throws Exception {
+        if (locatedPage.isEmpty()) {
+
+            String pagePath = locatedPage.getPath();
+            File file = new File(pagePath);
+            file.delete();
+
+            this.getHtblPageIdMinMax().remove(locatedPage.getId());
+        } else {
+            this.setMinMax(locatedPage);
+            locatedPage.serialize();
+        }
+    }
+
+    public void setMinMax(Page page) {
+        String ck = this.getClusteringKey();
+        Pair newPair = new Pair(page.getTuples().get(0).get(ck), page.getTuples().get(page.getTuples().size() - 1).get(ck));
+        this.getHtblPageIdMinMax().put(page.getId(), newPair);
     }
 }
