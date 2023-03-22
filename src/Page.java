@@ -2,16 +2,15 @@ import java.io.*;
 import java.util.*;
 public class Page implements Serializable {
     private Vector<Hashtable<String,Object>> tuples;
-    private static int maxIDSoFar = 0;
+
     private int id;
     private static int maxPageSize;
 
     private static String PAGE_DIRECTORY = "D:\\db-engine\\Pages\\";
 
-
-    public Page() throws IOException{
+    public Page(int id) throws IOException{
         tuples = new Vector<>();
-        this.id = maxIDSoFar++;
+        this.id = id;
 
         maxPageSize = Integer.parseInt(readConfig("DBApp.config").getProperty("MaximumRowsCountinTablePage"));
     }
@@ -19,14 +18,6 @@ public class Page implements Serializable {
         return maxPageSize;
     }
 
-
-    public static int getMaxIDSoFar() {
-        return maxIDSoFar;
-    }
-
-    public static void setMaxIDSoFar(int maxIDSoFar) {
-        Page.maxIDSoFar = maxIDSoFar;
-    }
 
     public int getId() {
         return id;
@@ -45,14 +36,14 @@ public class Page implements Serializable {
     }
 
     public void serialize() throws IOException {
-        ObjectOutputStream outputStream = new ObjectOutputStream(new FileOutputStream(PAGE_DIRECTORY + "page-" + this.getId()));
+        ObjectOutputStream outputStream = new ObjectOutputStream(new FileOutputStream(PAGE_DIRECTORY + "page-" + this.getId() + ".class"));
         outputStream.writeObject(this);
         outputStream.close();
     }
 
     // Method to deserialize the Page object
     public static Page deserialize(Integer id) throws IOException, ClassNotFoundException {
-        ObjectInputStream inputStream = new ObjectInputStream(new FileInputStream(PAGE_DIRECTORY + "page-" + id));
+        ObjectInputStream inputStream = new ObjectInputStream(new FileInputStream(PAGE_DIRECTORY + "page-" + id + ".class"));
         Page page = (Page) inputStream.readObject();
         inputStream.close();
         return page;
