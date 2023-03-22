@@ -238,6 +238,7 @@ public class DBApp {
            }
 
            locatedPage.getTuples().remove(tuple);
+           
            locatedPage.serialize();
         }
         else{

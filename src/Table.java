@@ -82,7 +82,7 @@ public class Table implements Serializable {
             Page nextPage = null;
             Pair nextPair = null;
             Object nextMin = null;
-            if(hasPage(id+1)){
+            if(hasPage(getNextID(currPage))){
                 nextPage = Page.deserialize(getNextID(currPage));
                 nextPair = this.getHtblPageIdMinMax().get(getNextID(currPage));
                 nextMin = nextPair.getMin();
