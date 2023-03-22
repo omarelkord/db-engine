@@ -90,7 +90,11 @@ public class DBApp {
         verifyInsert(strTableName, htblColNameValue);
         Table table = Table.deserialize(strTableName);
         Comparable ckValue = (Comparable) htblColNameValue.get(table.getClusteringKey());
+
         Page locatedPage = table.getLocatedPage(ckValue, true);
+
+        if(locatedPage!=null)
+            System.out.println("NOT NULL ID = " + locatedPage.getId());
 
         //HANDLES BOTH CASES: A) THERE ARE ZERO PAGES   B) THERE IS NO VIABLE PAGE TO INSERT IN
         if (locatedPage == null)
@@ -160,8 +164,10 @@ public class DBApp {
 
 
     public void insertAndShift(Hashtable<String, Object> tuple, int id, Table table) throws IOException, ClassNotFoundException, DBAppException {
+        System.out.println("Searching for id  = " + id);
 
         if (!table.hasPage(id)) {
+            System.out.println(table.getHtblPageIdPagesPaths());
             newPageInit(tuple, table);
             return;
         }
@@ -171,8 +177,11 @@ public class DBApp {
         Object ckValue = tuple.get(ckName);
 
         binaryInsert(tuple, page, ckName);
+        System.out.println("PAGE SIZE AFTER INSERTION = " + page.getId());
+
 
         if (page.isOverFlow()) {
+            System.out.println("ENTERED OVERFLOW FOR ID = " + page.getId());
             Hashtable<String, Object> lastTuple = page.getTuples().remove(page.getTuples().size() - 1);
             insertAndShift(lastTuple, table.getNextID(page), table);
         }
@@ -497,8 +506,16 @@ public class DBApp {
 
         Vector<String> tableNames = new Vector<>();
 
-        BufferedReader br = new BufferedReader(new FileReader(METADATA_PATH));
-        String line = br.readLine();
+        String line = null;
+        BufferedReader br = null;
+        try {
+            br = new BufferedReader(new FileReader(METADATA_PATH));
+            line = br.readLine();
+        } catch (Exception ignored) {
+            return new Vector<>();
+        }
+
+
 
         while (line != null) {
             String[] content = line.split(",");
@@ -573,6 +590,11 @@ public class DBApp {
         tuple10.put("name", "ashry");
         tuple10.put("gpa", 0.9);
 
+        Hashtable<String, Object> tuple11 = new Hashtable<>();
+        tuple11.put("age", 11);
+        tuple11.put("name", "sara");
+        tuple11.put("gpa", 0.9);
+
         DBApp dbApp = new DBApp();
         dbApp.init();
 
@@ -591,28 +613,31 @@ public class DBApp {
         htblColNameMax.put("name", "zzzzzzz");
         htblColNameMax.put("gpa", "4.0");
 
-//        dbApp.createTable("Students", "age", htblColNameType, htblColNameMin, htblColNameMax);
 
-        dbApp.insertIntoTable("Students", tuple2);
+//       dbApp.createTable("Students", "age", htblColNameType, htblColNameMin, htblColNameMax);
+
+//        dbApp.insertIntoTable("Students", tuple2);
         dbApp.insertIntoTable("Students", tuple6);
-        dbApp.insertIntoTable("Students", tuple7);
-        dbApp.insertIntoTable("Students", tuple8);
-        dbApp.insertIntoTable("Students", tuple1);
-        dbApp.insertIntoTable("Students", tuple3);
-        dbApp.insertIntoTable("Students", tuple5);
-        dbApp.insertIntoTable("Students", tuple4);
-        dbApp.insertIntoTable("Students", tuple9);
-        dbApp.insertIntoTable("Students", tuple10);
+//        dbApp.insertIntoTable("Students", tuple7);
+//        dbApp.insertIntoTable("Students", tuple8);
+//        dbApp.insertIntoTable("Students", tuple1);
+//        dbApp.insertIntoTable("Students", tuple3);
+//        dbApp.insertIntoTable("Students", tuple5);
+//        dbApp.insertIntoTable("Students", tuple4);
+//        dbApp.insertIntoTable("Students", tuple9);
+//        dbApp.insertIntoTable("Students", tuple10);
+
+//        dbApp.insertIntoTable("Students", tuple11);
 
 
 //        Hashtable<String, Object> updateHtbl = new Hashtable<>();
 //        updateHtbl.put("gpa", 0.7);
 //        updateHtbl.put("name", "Lolosh");
-//        Hashtable<String,Object>  deletingCriteria = new Hashtable<>();
-//        deletingCriteria.put("age",1);
-//        deletingCriteria.put("gpa" , 1.6);
+//       Hashtable<String,Object>  deletingCriteria = new Hashtable<>();
+//        deletingCriteria.put("age",3);
+
 //        //dbApp.updateTable("Students", "6", updateHtbl);
-//        dbApp.deleteFromTable("Students",deletingCriteria);
+//       dbApp.deleteFromTable("Students",deletingCriteria);
 
         Table table = Table.deserialize("Students");
 

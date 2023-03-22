@@ -2,9 +2,8 @@ import java.io.*;
 import java.util.*;
 public class Page implements Serializable {
     private Vector<Hashtable<String,Object>> tuples;
-
     private int id;
-    private static int maxPageSize;
+    private int maxPageSize;
 
     private static String PAGE_DIRECTORY = "D:\\db-engine\\Pages\\";
 
@@ -64,6 +63,9 @@ public class Page implements Serializable {
     }
 
     public boolean isOverFlow(){
+        System.out.println("CURR PAGE SIZE = " + this.tuples.size());
+        System.out.println("MAX PAGE SIZE = " + maxPageSize);
+
         return (this.tuples.size() > maxPageSize);
     }
 
