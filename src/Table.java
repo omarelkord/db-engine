@@ -9,8 +9,6 @@ public class Table implements Serializable {
     private Hashtable<Integer, String> htblPageIdPagesPaths;
     private Hashtable<Integer, Pair> htblPageIdMinMax;
     private Hashtable<Object, Integer> htblKeyPageId;
-
-    //pageID -> currPageSize
     private Hashtable<Integer, Integer> htblPageIdCurrPageSize;
     private String clusteringKey;
     private String ckType;
@@ -31,11 +29,9 @@ public class Table implements Serializable {
     public int getNumOfCols() {
         return numOfCols;
     }
-
     public void setNumOfCols(int numOfCols) {
         this.numOfCols = numOfCols;
     }
-
 
     public String getCkType() {
         return ckType;
@@ -74,7 +70,7 @@ public class Table implements Serializable {
     public Page getLocatedPage(Comparable CKValue, boolean toInsert) throws IOException, ClassNotFoundException {
         Page locatedPage = null;
 //        int currPageId = 0;
-        Vector<Integer> sortedID = new Vector<Integer>(this.getHtblPageIdMinMax().keySet());
+        Vector<Integer> sortedID = new Vector<>(this.getHtblPageIdMinMax().keySet());
         Collections.sort(sortedID);
 
         for (Integer id : sortedID) {
@@ -83,16 +79,31 @@ public class Table implements Serializable {
             Object min = pair.getMin();
             Object max = pair.getMax();
 
+            Page nextPage = null;
+            boolean isPageNull = false;
+            try {
+                nextPage = Page.deserialize(id + 1);
+            } catch (Exception e) {
+                isPageNull = true;
+            }
+            Pair nextPair = null;
+            Object nextMin = null;
+
+            if (!isPageNull) {
+                nextPair = this.getHtblPageIdMinMax().get(id + 1);
+                nextMin = nextPair.getMin();
+            }
+
             // NOT FULL:
-            // ) less than min => insert
+            // ) less than min =>
             // ) else => less than max (range) => insert same page
             // ) else if greater than max
             // )    if there's room ==> insert and update max
             // )    if full ==> next iteration (if not last iteration)
 
-            boolean insFlag = toInsert && (CKValue.compareTo(min) < 0 || (CKValue.compareTo(min) > 0
-                    && CKValue.compareTo(max) < 0)
-                    || (CKValue.compareTo(max) > 0 && !currPage.isFull()));
+
+            boolean insFlag = toInsert && (CKValue.compareTo(min) < 0 || (CKValue.compareTo(min) > 0 && CKValue.compareTo(max) < 0)
+                    || ((CKValue.compareTo(max) > 0 && !currPage.isFull()) && (!isPageNull && CKValue.compareTo((Comparable) nextMin) < 0)));
 
             boolean updateFlag = !toInsert && (CKValue.compareTo(min) >= 0 && CKValue.compareTo(max) <= 0);
 
@@ -106,7 +117,6 @@ public class Table implements Serializable {
 
         return locatedPage;
     }
-
     public int getNextID(Page page){
         Vector<Integer> idsInTable = new Vector<>(this.htblPageIdPagesPaths.keySet());
         Collections.sort(idsInTable);
@@ -149,7 +159,6 @@ public class Table implements Serializable {
         }
         return -1;
     }
-
     public String getName() {
         return name;
     }

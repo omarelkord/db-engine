@@ -566,10 +566,12 @@ public class DBApp {
         Hashtable<String, Object> tuple9 = new Hashtable<>();
         tuple9.put("age", 9);
         tuple9.put("name", "noura");
+        tuple5.put("gpa", 3.4);
+
         Hashtable<String, Object> tuple10 = new Hashtable<>();
         tuple10.put("age", 10);
         tuple10.put("name", "ashry");
-
+        tuple10.put("gpa", 0.9);
 
         DBApp dbApp = new DBApp();
         dbApp.init();
@@ -591,13 +593,17 @@ public class DBApp {
 
 //        dbApp.createTable("Students", "age", htblColNameType, htblColNameMin, htblColNameMax);
 
-//        dbApp.insertIntoTable("Students", tuple2);
-//        dbApp.insertIntoTable("Students", tuple6);
-//        dbApp.insertIntoTable("Students", tuple7);
-//        dbApp.insertIntoTable("Students", tuple8);
-//        dbApp.insertIntoTable("Students", tuple1);
-          dbApp.insertIntoTable("Students", tuple3);
-//        dbApp.insertIntoTable("Students", tuple5);
+        dbApp.insertIntoTable("Students", tuple2);
+        dbApp.insertIntoTable("Students", tuple6);
+        dbApp.insertIntoTable("Students", tuple7);
+        dbApp.insertIntoTable("Students", tuple8);
+        dbApp.insertIntoTable("Students", tuple1);
+        dbApp.insertIntoTable("Students", tuple3);
+        dbApp.insertIntoTable("Students", tuple5);
+        dbApp.insertIntoTable("Students", tuple4);
+        dbApp.insertIntoTable("Students", tuple9);
+        dbApp.insertIntoTable("Students", tuple10);
+
 
 //        Hashtable<String, Object> updateHtbl = new Hashtable<>();
 //        updateHtbl.put("gpa", 0.7);
@@ -619,5 +625,30 @@ public class DBApp {
         }
     }
 
+    public static void main2(String[] args) throws IOException, DBAppException {
+        DBApp dbApp = new DBApp();
+        dbApp.init();
+
+        Hashtable<String, String> htblColNameType = new Hashtable<>();
+        htblColNameType.put("age", "java.lang.Integer");
+        htblColNameType.put("name", "java.lang.String");
+        htblColNameType.put("gpa", "java.lang.Double");
+
+        Hashtable<String, String> htblColNameMin = new Hashtable<>();
+        htblColNameMin.put("age", "1");
+        htblColNameMin.put("name", "ZZZZZZZZZZ");
+        htblColNameMin.put("gpa", "0.7");
+
+        Hashtable<String, String> htblColNameMax = new Hashtable<>();
+        htblColNameMax.put("age", "40");
+        htblColNameMax.put("name", "ZZZZZZZZZ");
+        htblColNameMax.put("gpa", "4.0");
+
+        dbApp.createTable("Student", "age", htblColNameType, htblColNameMin, htblColNameMax);
+        dbApp.createTable("Instructor", "age", htblColNameType, htblColNameMin, htblColNameMax);
+        dbApp.createTable("Staff", "age", htblColNameType, htblColNameMin, htblColNameMax);
+
+        dbApp.getTableNames();
+    }
 
 }
