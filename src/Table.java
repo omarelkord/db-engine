@@ -1,4 +1,5 @@
 import java.io.*;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Hashtable;
 import java.util.Vector;
@@ -11,15 +12,9 @@ public class Table implements Serializable {
     private Hashtable<Integer, Integer> htblPageIdCurrPageSize;
     private String clusteringKey;
     private String ckType;
-    public int getNumOfCols() {
-        return numOfCols;
-    }
-    public void setNumOfCols(int numOfCols) {
-        this.numOfCols = numOfCols;
-    }
-    public static final String TABLE_DIRECTORY = "D:\\db-engine\\Tables\\";
     private int numOfCols;
-
+    public static final String TABLE_DIRECTORY = "D:\\db-engine\\Tables\\";
+    private int maxIDsoFar;
 
     public Table(String strTableName, String strClusteringKeyColumn) {
         this.name = strTableName;
@@ -28,6 +23,14 @@ public class Table implements Serializable {
         htblPageIdMinMax = new Hashtable<>();
         htblPageIdCurrPageSize = new Hashtable<>();
         htblKeyPageId = new Hashtable<>();
+        maxIDsoFar = -1;
+    }
+
+    public int getNumOfCols() {
+        return numOfCols;
+    }
+    public void setNumOfCols(int numOfCols) {
+        this.numOfCols = numOfCols;
     }
 
     public String getCkType() {
@@ -48,52 +51,21 @@ public class Table implements Serializable {
     }
 
 
-
     public void serialize() throws IOException {
-        ObjectOutputStream outputStream = new ObjectOutputStream(new FileOutputStream(TABLE_DIRECTORY + this.getName()));
+        ObjectOutputStream outputStream = new ObjectOutputStream(new FileOutputStream(TABLE_DIRECTORY + this.getName() + ".class"));
         outputStream.writeObject(this);
         outputStream.close();
     }
 
 
     public static Table deserialize(String tableName) throws IOException, ClassNotFoundException {
-        ObjectInputStream inputStream = new ObjectInputStream(new FileInputStream(TABLE_DIRECTORY + tableName));
+        ObjectInputStream inputStream = new ObjectInputStream(new FileInputStream(TABLE_DIRECTORY + tableName + ".class"));
         Table table = (Table) inputStream.readObject();
 
         inputStream.close();
         return table;
     }
 
-//    public String getClusteringKey() throws IOException, DBAppException {
-//
-//        BufferedReader br = new BufferedReader(new FileReader(DBApp.METADATA_PATH));
-//
-//        String line = br.readLine();
-//        String[] content = line.split(",");
-//
-//        String clusteringKey="";
-//
-//        while (line != null) {
-//
-//            String tableName = content[0];
-//            String colName = content[1];
-//            String isClusteringKey = content[3];
-//
-//            if (!tableName.equals(this.getName())) {
-//                line = br.readLine();
-//                continue;
-//            }
-//
-//            if (Boolean.parseBoolean(isClusteringKey))
-//                clusteringKey = colName;
-//
-//            line = br.readLine();
-//        }
-//
-//        br.close();
-//
-//        return clusteringKey;
-//    }
 
     public Page getLocatedPage(Comparable CKValue, boolean toInsert) throws IOException, ClassNotFoundException {
         Page locatedPage = null;
@@ -144,7 +116,48 @@ public class Table implements Serializable {
 
         return locatedPage;
     }
+    public int getNextID(Page page){
+        Vector<Integer> idsInTable = new Vector<>(this.htblPageIdPagesPaths.keySet());
+        Collections.sort(idsInTable);
 
+        int index = idsInTable.indexOf(page.getId());
+
+        if(index == idsInTable.size() - 1)
+            return -1;
+
+        return idsInTable.get(1 + index);
+    }
+
+    public int getMaxIDsoFar() {
+        return maxIDsoFar;
+    }
+
+    public void setMaxIDsoFar(int maxIDsoFar) {
+        this.maxIDsoFar = maxIDsoFar;
+    }
+
+    public int binarySearchInTable(Comparable value) throws Exception{
+        Vector<Integer> sortedID = new Vector<Integer>(this.getHtblPageIdMinMax().keySet());
+        Collections.sort(sortedID);
+
+        int left = 0;
+        int right = sortedID.size()-1;
+
+        while (left<=right) {
+            int mid = (right + left)/2;
+            Pair pair = this.getHtblPageIdMinMax().get(mid);
+            Object min = pair.getMin();
+            Object max = pair.getMax();
+
+            if(value.compareTo(min)>=0 && value.compareTo(max)<=0)
+                return mid;
+            if(value.compareTo(min)<0)
+                right= mid-1;
+            else
+                left = mid+1;
+        }
+        return -1;
+    }
     public String getName() {
         return name;
     }
@@ -191,10 +204,5 @@ public class Table implements Serializable {
 
     public boolean hasPage(int id) {
         return this.getHtblPageIdPagesPaths().get(id) != null;
-    }
-
-    public static void main(String[] args) {
-
-
     }
 }
