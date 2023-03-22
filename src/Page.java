@@ -4,12 +4,15 @@ public class Page implements Serializable {
     private Vector<Hashtable<String,Object>> tuples;
     private int id;
     private int maxPageSize;
-
+    private String tableName;
     private static String PAGE_DIRECTORY = "D:\\db-engine\\Pages\\";
+    private String path;
 
-    public Page(int id) throws IOException{
+    public Page(String tableName, int id) throws IOException{
+        this.tableName =  tableName;
         tuples = new Vector<>();
         this.id = id;
+        this.path = PAGE_DIRECTORY + tableName + "-" + id + ".ser";
 
         maxPageSize = Integer.parseInt(readConfig("DBApp.config").getProperty("MaximumRowsCountinTablePage"));
     }
@@ -35,14 +38,22 @@ public class Page implements Serializable {
     }
 
     public void serialize() throws IOException {
-        ObjectOutputStream outputStream = new ObjectOutputStream(new FileOutputStream(PAGE_DIRECTORY + "page-" + this.getId() + ".class"));
+        ObjectOutputStream outputStream = new ObjectOutputStream(new FileOutputStream(path));
         outputStream.writeObject(this);
         outputStream.close();
     }
 
+    public String getPath() {
+        return path;
+    }
+
+    public void setPath(String path) {
+        this.path = path;
+    }
+
     // Method to deserialize the Page object
-    public static Page deserialize(Integer id) throws IOException, ClassNotFoundException {
-        ObjectInputStream inputStream = new ObjectInputStream(new FileInputStream(PAGE_DIRECTORY + "page-" + id + ".class"));
+    public static Page deserialize(String strTableName, Integer id) throws IOException, ClassNotFoundException {
+        ObjectInputStream inputStream = new ObjectInputStream(new FileInputStream(PAGE_DIRECTORY + strTableName + "-" + id + ".ser"));
         Page page = (Page) inputStream.readObject();
         inputStream.close();
         return page;
@@ -56,6 +67,27 @@ public class Page implements Serializable {
         return properties;
     }
 
+    public int binarySearchInPage(String ckName, Comparable ckValue) {
+        Vector<Hashtable<String, Object>> tuples = this.getTuples();
+
+        int left = 0;
+        int right = tuples.size() - 1;
+
+        while (left <= right) {
+            int mid = (left + right) / 2;
+
+            if (((Comparable) tuples.get(mid).get(ckName)).compareTo(ckValue) == 0)
+                return mid;
+
+            if (((Comparable) tuples.get(mid).get(ckName)).compareTo(ckValue) > 0)
+                right = mid - 1;
+            else
+                left = mid + 1;
+        }
+
+        return -1;
+    }
+
     public boolean isFull(){
         if(this.tuples.size() == maxPageSize)
             return true;
@@ -63,10 +95,12 @@ public class Page implements Serializable {
     }
 
     public boolean isOverFlow(){
-        System.out.println("CURR PAGE SIZE = " + this.tuples.size());
-        System.out.println("MAX PAGE SIZE = " + maxPageSize);
-
         return (this.tuples.size() > maxPageSize);
+    }
+
+
+    public boolean isEmpty(){
+        return this.tuples.size() == 0;
     }
 
 }
