@@ -12,20 +12,30 @@ public class DBApp {
     private Vector<String> dataTypes;
     private int maxNoRowsInPage;
     private int maxEntriesInNode;
-    public static final String METADATA_PATH = "D:\\db-engine\\metadata.csv";
+    public static final String METADATA_PATH = "D:\\db-engine\\src\\main\\resources\\metadata.csv";
+    public static final String CONFIG_PATH = "D:\\db-engine\\src\\main\\resources\\DBApp.config";
 
     public DBApp() {
 
     }
 
-    public void init() throws IOException {
-        tableNames = getTableNames();
+    public void init() {
         dataTypes = new Vector<>();
         Collections.addAll(dataTypes, "java.lang.Integer", "java.lang.Double", "java.lang.String", "java.util.Date");
 
-        Properties properties = readConfig("DBApp.config");
-        maxNoRowsInPage = Integer.parseInt(properties.getProperty("MaximumRowsCountinTablePage"));
-        maxEntriesInNode = Integer.parseInt(properties.getProperty("MaximumEntriesinOctreeNode"));
+        try {
+            tableNames = getTableNames();
+        }catch (Exception e){
+
+        }
+
+        try {
+            Properties properties = readConfig(CONFIG_PATH);
+            maxNoRowsInPage = Integer.parseInt(properties.getProperty("MaximumRowsCountinTablePage"));
+            maxEntriesInNode = Integer.parseInt(properties.getProperty("MaximumEntriesinOctreeNode"));
+        }catch (Exception e){
+
+        }
     }
 
 
@@ -54,6 +64,7 @@ public class DBApp {
         Table table = new Table(strTableName, strClusteringKeyColumn);
         table.setCkType(htblColNameType.get(strClusteringKeyColumn));
         table.setNumOfCols(htblColNameType.size());
+        table.setColumnNames(new Vector<>(htblColNameType.keySet()));
 
         tableNames.add(strTableName);
         table.serialize();
@@ -66,7 +77,8 @@ public class DBApp {
                            Hashtable<String, String> htblColNameType,
                            Hashtable<String, String> htblColNameMin,
                            Hashtable<String, String> htblColNameMax) throws FileNotFoundException {
-        PrintWriter pw = new PrintWriter(new FileOutputStream("metadata.csv", true));
+
+        PrintWriter pw = new PrintWriter(new FileOutputStream(METADATA_PATH, true));
         String row = "";
         String isClusteringKey;
         for (String key : htblColNameType.keySet()) {
@@ -109,6 +121,14 @@ public class DBApp {
 
         Table table = Table.deserialize(strTableName);
 
+        if(htblColNameValue.size() != table.getColumnNames().size())
+            throw new DBAppException("Invalid number of columns entered");
+
+        for(String column : htblColNameValue.keySet())
+            if (!table.getColumnNames().contains(column))
+                throw new DBAppException(column + " field does not exist in the table");
+
+
         String ckName = table.getClusteringKey();
         Comparable ckValue = (Comparable) htblColNameValue.get(ckName);
 
@@ -117,15 +137,6 @@ public class DBApp {
             throw new DBAppException("Cannot allow null values for Clustering Key");
         }
 
-        //VERIFY DUPE CK
-        int pid = table.binarySearchInTable(ckValue);
-        if(pid != -1){
-            Page p = Page.deserialize(strTableName, pid);
-            int tupleIdx = p.binarySearchInPage(table.getClusteringKey(), ckValue);
-
-            if(tupleIdx != -1)
-                throw new DBAppException("Cannot allow duplicate values for Clustering Key");
-        }
 
         BufferedReader br = new BufferedReader(new FileReader(METADATA_PATH));
 
@@ -155,12 +166,20 @@ public class DBApp {
                 if (compare(value, max) > 0)
                     throw new DBAppException( value + " is greater than the allowed maximum value");
                 if (compare(value, min) < 0){
-
-                    System.out.println(min+" "+value +" "+ compare(value,min));
                     throw new DBAppException( value+ " is less than the allowed minimum value");}
             }
 
             line = br.readLine();
+        }
+
+        //VERIFY DUPE CK
+        int pid = table.binarySearchInTable(ckValue);
+        if(pid != -1){
+            Page p = Page.deserialize(strTableName, pid);
+            int tupleIdx = p.binarySearchInPage(table.getClusteringKey(), ckValue);
+
+            if(tupleIdx != -1)
+                throw new DBAppException("Cannot allow duplicate values for Clustering Key");
         }
 
         br.close();
@@ -274,7 +293,6 @@ public class DBApp {
 
         String line = br.readLine();
         String[] content = line.split(",");
-        Vector<String> colNames = new Vector<>();
 
         while (line != null) {
             content = line.split(",");
@@ -290,8 +308,6 @@ public class DBApp {
                 continue;
             }
 
-            colNames.add(colName);
-
             if (value != null) {
                 if (!sameType(value, colType)) {
                     System.out.println(colName);
@@ -305,11 +321,9 @@ public class DBApp {
 
         br.close();
 
-        System.out.println(colNames);
-
-        for(String columns : htblColNameValue.keySet())
-            if (!colNames.contains(columns))
-                throw new DBAppException(columns + " field does not exist in the table");
+        for(String column : htblColNameValue.keySet())
+            if (!table.getColumnNames().contains(column))
+                throw new DBAppException(column + " field does not exist in the table");
 
         table.serialize();
     }
@@ -349,14 +363,15 @@ public class DBApp {
 
         if (htblColNameValue.get(table.getClusteringKey()) != null)
             throw new DBAppException("Cannot update the clustering key");
-        if(table.getNumOfCols() - 1 < htblColNameValue.size())
-            throw new DBAppException("Number of inserted columns to update is incorrect");
+
+        for(String column : htblColNameValue.keySet())
+            if (!table.getColumnNames().contains(column))
+                throw new DBAppException(column + " field does not exist in the table");
 
         BufferedReader br = new BufferedReader(new FileReader(METADATA_PATH));
 
         String line = br.readLine();
         String[] content = line.split(",");
-        Vector<String> colNames = new Vector<>();
 
         while (line != null) {
             content = line.split(",");
@@ -372,8 +387,6 @@ public class DBApp {
                 line = br.readLine();
                 continue;
             }
-
-            colNames.add(colName);
 
             if (value != null) {
                 if (!sameType(value, colType))
@@ -396,10 +409,6 @@ public class DBApp {
         }
         table.serialize();
         br.close();
-
-        for(String columns : htblColNameValue.keySet())
-            if (!colNames.contains(columns))
-                throw new DBAppException(columns + " does not exist in the table");
     }
 
     public Object parse(String value, String type) throws ClassNotFoundException, ParseException {
@@ -486,10 +495,9 @@ public class DBApp {
             br = new BufferedReader(new FileReader(METADATA_PATH));
             line = br.readLine();
         } catch (Exception ignored) {
+            System.out.println("can't find metadata");
             return new Vector<>();
         }
-
-
 
         while (line != null) {
             String[] content = line.split(",");
@@ -509,7 +517,7 @@ public class DBApp {
         return tableNames;
     }
 
-    public static void main(String[] args) throws Exception {
+    public static void main2(String[] args) throws Exception {
 
         Hashtable<String, Object> tuple0 = new Hashtable<>();
         tuple0.put("age", 0);
@@ -571,8 +579,6 @@ public class DBApp {
         tuple11.put("name", "sara");
         tuple11.put("gpa", 0.9);
 
-        DBApp dbApp = new DBApp();
-        dbApp.init();
 
         Hashtable<String, String> htblColNameType = new Hashtable<>();
         htblColNameType.put("age", "java.lang.Integer");
@@ -588,10 +594,12 @@ public class DBApp {
         htblColNameMax.put("age", "40");
         htblColNameMax.put("name", "zzzzzzz");
         htblColNameMax.put("gpa", "4.0");
+        DBApp dbApp = new DBApp();
+        dbApp.init();
 
 //         dbApp.createTable("Students", "age", htblColNameType, htblColNameMin, htblColNameMax);
 //             dbApp.insertIntoTable("Students", tuple0);
-        //     dbApp.insertIntoTable("Students", tuple2);
+             dbApp.insertIntoTable("Students", tuple2);
 //        dbApp.insertIntoTable("Students", tuple6);
 //        dbApp.insertIntoTable("Students", tuple7);
 //        dbApp.insertIntoTable("Students", tuple8);
@@ -634,5 +642,20 @@ public class DBApp {
     }
 
 
+    //testing
+    public static void main(String[] args) throws IOException, ClassNotFoundException {
+        DBApp dbApp = new DBApp();
+        dbApp.init();
+
+        Table table = Table.deserialize("pcs");
+
+        for (int id : table.getHtblPageIdMinMax().keySet()) {
+            Page p = Page.deserialize(table.getName(), id);
+            System.out.println("PAGE " + id);
+            System.out.println(p.getTuples());
+            System.out.println("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
+            p.serialize();
+        }
+    }
 
 }

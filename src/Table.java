@@ -10,7 +10,10 @@ public class Table implements Serializable {
     private String clusteringKey;
     private String ckType;
     private int numOfCols;
-    public static final String TABLE_DIRECTORY = "D:\\db-engine\\Tables\\";
+    private Vector<String> columnNames;
+
+
+    public static final String TABLE_DIRECTORY = "D:\\db-engine\\src\\main\\resources\\data\\";
     private int maxIDsoFar;
 
     public Table(String strTableName, String strClusteringKeyColumn) {
@@ -168,6 +171,14 @@ public class Table implements Serializable {
         this.clusteringKey = clusteringKey;
     }
 
+    public Vector<String> getColumnNames() {
+        return columnNames;
+    }
+
+    public void setColumnNames(Vector<String> columnNames) {
+        this.columnNames = columnNames;
+    }
+
 
     public boolean hasPage(int id) {
         return this.getHtblPageIdMinMax().get(id) != null;
@@ -192,4 +203,6 @@ public class Table implements Serializable {
         Pair newPair = new Pair(page.getTuples().get(0).get(ck), page.getTuples().get(page.getTuples().size() - 1).get(ck));
         this.getHtblPageIdMinMax().put(page.getId(), newPair);
     }
+
+
 }

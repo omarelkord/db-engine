@@ -5,7 +5,7 @@ public class Page implements Serializable {
     private int id;
     private int maxPageSize;
     private String tableName;
-    private static String PAGE_DIRECTORY = "D:\\db-engine\\Pages\\";
+    private static String PAGE_DIRECTORY = "D:\\db-engine\\src\\main\\resources\\data\\";
     private String path;
 
     public Page(String tableName, int id) throws IOException{
@@ -14,7 +14,7 @@ public class Page implements Serializable {
         this.id = id;
         this.path = PAGE_DIRECTORY + tableName + "-" + id + ".ser";
 
-        maxPageSize = Integer.parseInt(readConfig("DBApp.config").getProperty("MaximumRowsCountinTablePage"));
+        maxPageSize = Integer.parseInt(readConfig(DBApp.CONFIG_PATH).getProperty("MaximumRowsCountinTablePage"));
     }
     public int getMaxPageSize() {
         return maxPageSize;
