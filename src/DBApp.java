@@ -517,7 +517,7 @@ public class DBApp {
         return tableNames;
     }
 
-    public static void main2(String[] args) throws Exception {
+    public static void main(String[] args) throws Exception {
 
         Hashtable<String, Object> tuple0 = new Hashtable<>();
         tuple0.put("age", 0);
@@ -599,16 +599,16 @@ public class DBApp {
 
 //         dbApp.createTable("Students", "age", htblColNameType, htblColNameMin, htblColNameMax);
 //             dbApp.insertIntoTable("Students", tuple0);
-             dbApp.insertIntoTable("Students", tuple2);
+//             dbApp.insertIntoTable("Students", tuple2);
 //        dbApp.insertIntoTable("Students", tuple6);
 //        dbApp.insertIntoTable("Students", tuple7);
 //        dbApp.insertIntoTable("Students", tuple8);
 //        dbApp.insertIntoTable("Students", tuple1);
 //        dbApp.insertIntoTable("Students", tuple3);
-  //      dbApp.insertIntoTable("Students", tuple5);
+//        dbApp.insertIntoTable("Students", tuple5);
 //        dbApp.insertIntoTable("Students", tuple4);
 //        dbApp.insertIntoTable("Students", tuple9);
-//         dbApp.insertIntoTable("Students", tuple10);
+         dbApp.insertIntoTable("Students", tuple10);
 
 //        dbApp.insertIntoTable("Students", tuple11);
 
@@ -621,7 +621,7 @@ public class DBApp {
          Hashtable<String,Object> deletingCriteria0 = new Hashtable<>();
          Hashtable<String,Object> deletingCriteria1 = new Hashtable<>();
          Hashtable<String,Object> deletingCriteria2 = new Hashtable<>();
-         deletingCriteria0.put( "age", 2);
+         deletingCriteria0.put( "age", 6);
 //         deletingCriteria1.put("gpa", 2.3);
 //         deletingCriteria2.put( "name", "nada");
 //       deletingCriteria.put("name","Lobna");
@@ -643,7 +643,7 @@ public class DBApp {
 
 
     //testing
-    public static void main(String[] args) throws IOException, ClassNotFoundException {
+    public static void main2(String[] args) throws IOException, ClassNotFoundException {
         DBApp dbApp = new DBApp();
         dbApp.init();
 
