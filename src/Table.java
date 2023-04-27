@@ -10,7 +10,10 @@ public class Table implements Serializable {
     private String clusteringKey;
     private String ckType;
     private int numOfCols;
-    public static final String TABLE_DIRECTORY = "D:\\db-engine\\Tables\\";
+    private Vector<String> columnNames;
+
+
+    public static final String TABLE_DIRECTORY = "D:\\db-engine\\src\\main\\resources\\data\\";
     private int maxIDsoFar;
 
     public Table(String strTableName, String strClusteringKeyColumn) {
@@ -52,7 +55,7 @@ public class Table implements Serializable {
     }
 
 
-    public Page getPageToInsert(Comparable CKValue) throws IOException, ClassNotFoundException {
+    public Page getPageToInsert2(Comparable CKValue) throws IOException, ClassNotFoundException {
         Page locatedPage = null;
 
         Vector<Integer> sortedID = new Vector<>(this.getHtblPageIdMinMax().keySet());
@@ -92,6 +95,40 @@ public class Table implements Serializable {
 
         return locatedPage;
     }
+
+    public Integer getPageIDToInsert(Comparable value){
+        Vector<Integer> sortedID = new Vector<Integer>(this.htblPageIdMinMax.keySet());
+        Collections.sort(sortedID);
+
+        int left = 0;
+        int right = sortedID.size() - 1;
+
+        while (left <= right) {
+            int mid = (right + left) / 2;
+            Pair pair = this.getHtblPageIdMinMax().get(sortedID.get(mid));
+            Object min = pair.getMin();
+            Object max = pair.getMax();
+
+            if (value.compareTo(min) > 0 && value.compareTo(max) < 0)
+                return sortedID.get(mid);
+            if (value.compareTo(min) < 0)
+                right = mid - 1;
+            else
+                left = mid + 1;
+        }
+        return sortedID.get(Math.max(right, 0));
+    }
+
+    public Page getPageToInsert(Comparable ckValue) throws IOException, ClassNotFoundException {
+
+        //no available pages
+        if(this.getHtblPageIdMinMax().isEmpty())
+            return null;
+
+        Integer id = this.getPageIDToInsert(ckValue);
+        return Page.deserialize(this.getName(), id);
+    }
+
 
     public int getNextID(Page page) {
         Vector<Integer> idsInTable = new Vector<>(this.htblPageIdMinMax.keySet());
@@ -170,6 +207,14 @@ public class Table implements Serializable {
         this.clusteringKey = clusteringKey;
     }
 
+    public Vector<String> getColumnNames() {
+        return columnNames;
+    }
+
+    public void setColumnNames(Vector<String> columnNames) {
+        this.columnNames = columnNames;
+    }
+
 
     public boolean hasPage(int id) {
         return this.getHtblPageIdMinMax().get(id) != null;
@@ -194,4 +239,6 @@ public class Table implements Serializable {
         Pair newPair = new Pair(page.getTuples().get(0).get(ck), page.getTuples().get(page.getTuples().size() - 1).get(ck));
         this.getHtblPageIdMinMax().put(page.getId(), newPair);
     }
+
+
 }
