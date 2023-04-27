@@ -12,8 +12,10 @@ public class DBApp {
     private Vector<String> dataTypes;
     private int maxNoRowsInPage;
     private int maxEntriesInNode;
-    public static final String METADATA_PATH = "D:\\db-engine\\src\\main\\resources\\metadata.csv";
-    public static final String CONFIG_PATH = "D:\\db-engine\\src\\main\\resources\\DBApp.config";
+//    public static final String METADATA_PATH = "D:\\db-engine\\src\\main\\resources\\metadata.csv";
+    public static final String METADATA_PATH = "./src/main/resources/metadata.csv";
+//    public static final String CONFIG_PATH = "D:\\db-engine\\src\\main\\resources\\DBApp.config";
+    public static final String CONFIG_PATH = "./src/main/resources/DBApp.config";
 
     public DBApp() {
 
@@ -48,11 +50,18 @@ public class DBApp {
         if (tableNames.contains(strTableName))
             throw new DBAppException("Table already exists");
 
+        if(htblColNameType.size() != htblColNameMin.size() || htblColNameType.size() != htblColNameMax.size())
+            throw new DBAppException("Should enter consistent columns' information");
+
         for (Map.Entry<String, String> entry : htblColNameType.entrySet()) {
             String value = entry.getValue();
+            String colName = entry.getKey();
 
             if (!dataTypes.contains(value))
                 throw new DBAppException("Invalid data type");
+
+            if(htblColNameMin.get(colName) == null || htblColNameMax.get(colName) == null)
+                throw new DBAppException( "Should specify both min and max values for the column " + colName );
         }
 
         if (htblColNameType.get(strClusteringKeyColumn) == null)
@@ -99,11 +108,18 @@ public class DBApp {
     public void insertIntoTable(String strTableName,
                                 Hashtable<String, Object> htblColNameValue) throws Exception {
 
+
         verifyInsert(strTableName, htblColNameValue);
         Table table = Table.deserialize(strTableName);
         Comparable ckValue = (Comparable) htblColNameValue.get(table.getClusteringKey());
 
         Page locatedPage = table.getPageToInsert(ckValue);
+
+        if(htblColNameValue.size() < table.getNumOfCols()){
+            for (String colName : table.getColumnNames())
+                if(htblColNameValue.get(colName) == null)
+                    htblColNameValue.put(colName, NullObject.getInstance());
+        }
 
         //HANDLES BOTH CASES: A) THERE ARE ZERO PAGES   B) THERE IS NO VIABLE PAGE TO INSERT IN
         if (locatedPage == null)
@@ -121,7 +137,10 @@ public class DBApp {
 
         Table table = Table.deserialize(strTableName);
 
-        if(htblColNameValue.size() != table.getColumnNames().size())
+//        if(htblColNameValue.size() != table.getColumnNames().size())
+//            throw new DBAppException("Invalid number of columns entered");
+
+        if(htblColNameValue.size() > table.getNumOfCols())
             throw new DBAppException("Invalid number of columns entered");
 
         for(String column : htblColNameValue.keySet())
@@ -177,6 +196,7 @@ public class DBApp {
         if(pid != -1){
             Page p = Page.deserialize(strTableName, pid);
             int tupleIdx = p.binarySearchInPage(table.getClusteringKey(), ckValue);
+            p.serialize();
 
             if(tupleIdx != -1)
                 throw new DBAppException("Cannot allow duplicate values for Clustering Key");
@@ -195,8 +215,8 @@ public class DBApp {
         }
 
         Page page = Page.deserialize(table.getName(), id);
-        String ckName = table.getClusteringKey();
-        Object ckValue = tuple.get(ckName);
+            String ckName = table.getClusteringKey();
+            Object ckValue = tuple.get(ckName);
 
         binaryInsert(tuple, page, ckName);
 
@@ -579,6 +599,11 @@ public class DBApp {
         tuple11.put("name", "sara");
         tuple11.put("gpa", 0.9);
 
+        Hashtable<String, Object> tuple12 = new Hashtable<>();
+        tuple12.put("age", 14);
+        tuple12.put("name", "sara");
+
+
 
         Hashtable<String, String> htblColNameType = new Hashtable<>();
         htblColNameType.put("age", "java.lang.Integer");
@@ -597,7 +622,7 @@ public class DBApp {
         DBApp dbApp = new DBApp();
         dbApp.init();
 
-//         dbApp.createTable("Students", "age", htblColNameType, htblColNameMin, htblColNameMax);
+         dbApp.createTable("Staff", "age", htblColNameType, htblColNameMin, htblColNameMax);
 //             dbApp.insertIntoTable("Students", tuple0);
 //             dbApp.insertIntoTable("Students", tuple2);
 //        dbApp.insertIntoTable("Students", tuple6);
@@ -608,9 +633,11 @@ public class DBApp {
 //        dbApp.insertIntoTable("Students", tuple5);
 //        dbApp.insertIntoTable("Students", tuple4);
 //        dbApp.insertIntoTable("Students", tuple9);
-         dbApp.insertIntoTable("Students", tuple10);
-
+//         dbApp.insertIntoTable("Students", tuple10);
+//
 //        dbApp.insertIntoTable("Students", tuple11);
+//         dbApp.insertIntoTable("Students", tuple12);
+
 
 
 //        Hashtable<String, Object> updateHtbl = new Hashtable<>();
@@ -621,7 +648,7 @@ public class DBApp {
          Hashtable<String,Object> deletingCriteria0 = new Hashtable<>();
          Hashtable<String,Object> deletingCriteria1 = new Hashtable<>();
          Hashtable<String,Object> deletingCriteria2 = new Hashtable<>();
-         deletingCriteria0.put( "age", 6);
+         deletingCriteria0.put( "age", 2);
 //         deletingCriteria1.put("gpa", 2.3);
 //         deletingCriteria2.put( "name", "nada");
 //       deletingCriteria.put("name","Lobna");

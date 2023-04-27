@@ -5,7 +5,9 @@ public class Page implements Serializable {
     private int id;
     private int maxPageSize;
     private String tableName;
-    private static String PAGE_DIRECTORY = "D:\\db-engine\\src\\main\\resources\\data\\";
+//    private static String PAGE_DIRECTORY = "D:\\db-engine\\src\\main\\resources\\data\\";
+
+    private static String PAGE_DIRECTORY = "./src/main/resources/data/";
     private String path;
 
     public Page(String tableName, int id) throws IOException{

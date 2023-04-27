@@ -13,7 +13,9 @@ public class Table implements Serializable {
     private Vector<String> columnNames;
 
 
-    public static final String TABLE_DIRECTORY = "D:\\db-engine\\src\\main\\resources\\data\\";
+//    public static final String TABLE_DIRECTORY = "D:\\db-engine\\src\\main\\resources\\data\\";
+    public static final String TABLE_DIRECTORY = "./src/main/resources/data/";
+
     private int maxIDsoFar;
 
     public Table(String strTableName, String strClusteringKeyColumn) {
