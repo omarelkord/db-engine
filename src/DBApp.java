@@ -45,7 +45,7 @@ public class DBApp {
                             String strClusteringKeyColumn,
                             Hashtable<String, String> htblColNameType,
                             Hashtable<String, String> htblColNameMin,
-                            Hashtable<String, String> htblColNameMax) throws DBAppException, FileNotFoundException, IOException {
+                            Hashtable<String, String> htblColNameMax) throws DBAppException {
 
         if (tableNames.contains(strTableName))
             throw new DBAppException("Table already exists");
@@ -76,9 +76,14 @@ public class DBApp {
         table.setColumnNames(new Vector<>(htblColNameType.keySet()));
 
         tableNames.add(strTableName);
-        table.serialize();
+        try {
+            table.serialize();
 
-        writeInCSV(strTableName, strClusteringKeyColumn, htblColNameType, htblColNameMin, htblColNameMax); //a method that will write in the csv
+            writeInCSV(strTableName, strClusteringKeyColumn, htblColNameType, htblColNameMin, htblColNameMax); //a method that will write in the csv
+        }catch (Exception e){
+            throw new DBAppException(e.getMessage());
+        }
+
     }
 
     public void writeInCSV(String strTableName,
@@ -106,28 +111,31 @@ public class DBApp {
     }
 
     public void insertIntoTable(String strTableName,
-                                Hashtable<String, Object> htblColNameValue) throws Exception {
+                                Hashtable<String, Object> htblColNameValue) throws DBAppException {
 
+        try {
+            verifyInsert(strTableName, htblColNameValue);
+            Table table = Table.deserialize(strTableName);
+            Comparable ckValue = (Comparable) htblColNameValue.get(table.getClusteringKey());
 
-        verifyInsert(strTableName, htblColNameValue);
-        Table table = Table.deserialize(strTableName);
-        Comparable ckValue = (Comparable) htblColNameValue.get(table.getClusteringKey());
+            Page locatedPage = table.getPageToInsert(ckValue);
 
-        Page locatedPage = table.getPageToInsert(ckValue);
+            if (htblColNameValue.size() < table.getNumOfCols()) {
+                for (String colName : table.getColumnNames())
+                    if (htblColNameValue.get(colName) == null)
+                        htblColNameValue.put(colName, NullObject.getInstance());
+            }
 
-        if(htblColNameValue.size() < table.getNumOfCols()){
-            for (String colName : table.getColumnNames())
-                if(htblColNameValue.get(colName) == null)
-                    htblColNameValue.put(colName, NullObject.getInstance());
+            //HANDLES BOTH CASES: A) THERE ARE ZERO PAGES   B) THERE IS NO VIABLE PAGE TO INSERT IN
+            if (locatedPage == null)
+                newPageInit(htblColNameValue, table);
+            else
+                insertAndShift(htblColNameValue, locatedPage.getId(), table);
+
+            table.serialize();
+        }catch (Exception e){
+            throw new DBAppException(e.getMessage());
         }
-
-        //HANDLES BOTH CASES: A) THERE ARE ZERO PAGES   B) THERE IS NO VIABLE PAGE TO INSERT IN
-        if (locatedPage == null)
-            newPageInit(htblColNameValue, table);
-        else
-            insertAndShift(htblColNameValue, locatedPage.getId(), table);
-
-        table.serialize();
     }
 
     public void verifyInsert(String strTableName, Hashtable<String, Object> htblColNameValue) throws Exception {
@@ -251,47 +259,50 @@ public class DBApp {
 
     public void deleteFromTable(String strTableName,
                                 Hashtable<String, Object> htblColNameValue)
-            throws Exception {
+            throws DBAppException {
+        try {
+            verifyDelete(strTableName, htblColNameValue);
+            Table table = Table.deserialize(strTableName);
 
-        verifyDelete(strTableName, htblColNameValue);
-        Table table = Table.deserialize(strTableName);
+            boolean hasCK = htblColNameValue.get(table.getClusteringKey()) != null;
 
-        boolean hasCK = htblColNameValue.get(table.getClusteringKey()) != null;
+            if (hasCK) {
+                //binary search to locate the page
+                Comparable ckValue = (Comparable) htblColNameValue.get(table.getClusteringKey());
 
-        if (hasCK) {
-            //binary search to locate the page
-            Comparable ckValue = (Comparable) htblColNameValue.get(table.getClusteringKey());
+                Page locatedPage = table.getPageToModify(ckValue);
 
-            Page locatedPage = table.getPageToModify(ckValue);
+                int tupleIndex = locatedPage.binarySearchInPage(table.getClusteringKey(), ((Comparable) ckValue));
+                if (tupleIndex == -1)
+                    throw new DBAppException("Tuple does not exist");
 
-            int tupleIndex = locatedPage.binarySearchInPage(table.getClusteringKey(), ((Comparable) ckValue));
-            if (tupleIndex == -1)
-                throw new DBAppException("Tuple does not exist");
+                Hashtable<String, Object> tuple = locatedPage.getTuples().get(tupleIndex);
 
-            Hashtable<String, Object> tuple = locatedPage.getTuples().get(tupleIndex);
+                if (!isMatch(htblColNameValue, tuple))
+                    return;
+                locatedPage.getTuples().remove(tuple);
+                table.updatePageDelete(locatedPage);
 
-            if (!isMatch(htblColNameValue, tuple))
-                return;
-            locatedPage.getTuples().remove(tuple);
-            table.updatePageDelete(locatedPage);
+            } else {
+                Vector<Integer> ids = new Vector<Integer>(table.getHtblPageIdMinMax().keySet());
+                for (Integer id : ids) {
+                    Page currPage = Page.deserialize(table.getName(), id);
+                    Vector<Hashtable<String, Object>> tmp = new Vector<>();
 
-        } else {
-            Vector<Integer> ids = new Vector<Integer>(table.getHtblPageIdMinMax().keySet());
-            for (Integer id : ids) {
-                Page currPage = Page.deserialize(table.getName(), id);
-                Vector<Hashtable<String, Object>> tmp = new Vector<>();
-
-                for (Hashtable<String, Object> tuple : currPage.getTuples())
-                    if (isMatch(htblColNameValue, tuple))
-                        tmp.add(tuple);
+                    for (Hashtable<String, Object> tuple : currPage.getTuples())
+                        if (isMatch(htblColNameValue, tuple))
+                            tmp.add(tuple);
 
 
-                currPage.getTuples().removeAll(tmp);
-                table.updatePageDelete(currPage);
+                    currPage.getTuples().removeAll(tmp);
+                    table.updatePageDelete(currPage);
+                }
             }
-        }
 
-        table.serialize();
+            table.serialize();
+        }catch (Exception e){
+            throw new DBAppException(e.getMessage());
+        }
     }
 
     public boolean isMatch(Hashtable<String, Object> htblColNameValue, Hashtable<String, Object> tuple){
@@ -351,25 +362,28 @@ public class DBApp {
     //test later **
     public void updateTable(String strTableName,
                             String strClusteringKeyValue,
-                            Hashtable<String, Object> htblColNameValue) throws Exception {
+                            Hashtable<String, Object> htblColNameValue) throws DBAppException {
+        try {
+            verifyUpdate(strTableName, strClusteringKeyValue, htblColNameValue);
+            Table table = Table.deserialize(strTableName);
+            Comparable ckValue = (Comparable) parse(strClusteringKeyValue, table.getCkType());
 
-        verifyUpdate(strTableName, strClusteringKeyValue, htblColNameValue);
-        Table table = Table.deserialize(strTableName);
-        Comparable ckValue = (Comparable) parse(strClusteringKeyValue, table.getCkType());
+            Page locatedPage = table.getPageToModify(ckValue);
 
-        Page locatedPage = table.getPageToModify(ckValue);
+            int tupleIndex = locatedPage.binarySearchInPage(table.getClusteringKey(), ((Comparable) ckValue));
 
-        int tupleIndex = locatedPage.binarySearchInPage(table.getClusteringKey(), ((Comparable) ckValue));
+            if (tupleIndex == -1)
+                throw new DBAppException("Tuple does not exist");
 
-        if(tupleIndex == -1)
-            throw new DBAppException("Tuple does not exist");
+            Hashtable<String, Object> tupleToUpdate = locatedPage.getTuples().get(tupleIndex);
+            tupleToUpdate.putAll(htblColNameValue);
 
-        Hashtable<String, Object> tupleToUpdate = locatedPage.getTuples().get(tupleIndex);
-        tupleToUpdate.putAll(htblColNameValue);
-
-        table.setMinMax(locatedPage);
-        locatedPage.serialize();
-        table.serialize();
+            table.setMinMax(locatedPage);
+            locatedPage.serialize();
+            table.serialize();
+        }catch (Exception e){
+            throw new DBAppException(e.getMessage());
+        }
     }
 
     public void verifyUpdate(String strTableName,
