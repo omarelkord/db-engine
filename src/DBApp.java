@@ -229,14 +229,22 @@ public class DBApp {
         binaryInsert(tuple, page, ckName);
 
 
+
         if (page.isOverFlow()) {
             Hashtable<String, Object> lastTuple = page.getTuples().remove(page.getTuples().size() - 1);
-            insertAndShift(lastTuple, table.getNextID(page), table);
+            int pageId= table.getNextID(page);
+            table.setMinMax(page);
+            page.serialize();
+            insertAndShift(lastTuple, pageId, table);
+        }
+        else{
+            table.setMinMax(page);
+            page.serialize();
         }
 
         //hashtable updates
-        table.setMinMax(page);
-        page.serialize();
+
+
     }
 
     public static void binaryInsert(Hashtable<String, Object> tuple, Page page, String ck) {
@@ -269,19 +277,23 @@ public class DBApp {
             if (hasCK) {
                 //binary search to locate the page
                 Comparable ckValue = (Comparable) htblColNameValue.get(table.getClusteringKey());
-
+            try{
                 Page locatedPage = table.getPageToModify(ckValue);
+
 
                 int tupleIndex = locatedPage.binarySearchInPage(table.getClusteringKey(), ((Comparable) ckValue));
                 if (tupleIndex == -1)
-                    throw new DBAppException("Tuple does not exist");
+                    return;
 
                 Hashtable<String, Object> tuple = locatedPage.getTuples().get(tupleIndex);
 
                 if (!isMatch(htblColNameValue, tuple))
                     return;
                 locatedPage.getTuples().remove(tuple);
-                table.updatePageDelete(locatedPage);
+                table.updatePageDelete(locatedPage);}
+            catch(DBAppException db){
+
+            }
 
             } else {
                 Vector<Integer> ids = new Vector<Integer>(table.getHtblPageIdMinMax().keySet());
@@ -301,6 +313,7 @@ public class DBApp {
 
             table.serialize();
         }catch (Exception e){
+            e.printStackTrace();
             throw new DBAppException(e.getMessage());
         }
     }
@@ -473,6 +486,7 @@ public class DBApp {
 
         table.setMinMax(page);
         page.serialize();
+       // page=null;
     }
 
     public void newPageInit(Hashtable<String, Object> tuple, Table table) throws IOException {
@@ -636,21 +650,21 @@ public class DBApp {
         DBApp dbApp = new DBApp();
         dbApp.init();
 
-         dbApp.createTable("Staff", "age", htblColNameType, htblColNameMin, htblColNameMax);
-//             dbApp.insertIntoTable("Students", tuple0);
-//             dbApp.insertIntoTable("Students", tuple2);
+        //dbApp.createTable("Students", "age", htblColNameType, htblColNameMin, htblColNameMax);
+        // dbApp.insertIntoTable("Students", tuple0);
+//      dbApp.insertIntoTable("Students", tuple2);
 //        dbApp.insertIntoTable("Students", tuple6);
-//        dbApp.insertIntoTable("Students", tuple7);
+//         dbApp.insertIntoTable("Students", tuple7);
 //        dbApp.insertIntoTable("Students", tuple8);
 //        dbApp.insertIntoTable("Students", tuple1);
 //        dbApp.insertIntoTable("Students", tuple3);
-//        dbApp.insertIntoTable("Students", tuple5);
-//        dbApp.insertIntoTable("Students", tuple4);
+//          dbApp.insertIntoTable("Students", tuple5);
+//            dbApp.insertIntoTable("Students", tuple4);
 //        dbApp.insertIntoTable("Students", tuple9);
-//         dbApp.insertIntoTable("Students", tuple10);
+//        dbApp.insertIntoTable("Students", tuple10);
 //
 //        dbApp.insertIntoTable("Students", tuple11);
-//         dbApp.insertIntoTable("Students", tuple12);
+         dbApp.insertIntoTable("Students", tuple12);
 
 
 
