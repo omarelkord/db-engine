@@ -12,9 +12,7 @@ public class DBApp {
     private Vector<String> dataTypes;
     private int maxNoRowsInPage;
     private int maxEntriesInNode;
-//    public static final String METADATA_PATH = "D:\\db-engine\\src\\main\\resources\\metadata.csv";
     public static final String METADATA_PATH = "./src/main/resources/metadata.csv";
-//    public static final String CONFIG_PATH = "D:\\db-engine\\src\\main\\resources\\DBApp.config";
     public static final String CONFIG_PATH = "./src/main/resources/DBApp.config";
 
     public DBApp() {
@@ -238,11 +236,11 @@ public class DBApp {
             insertAndShift(lastTuple, pageId, table);
         }
         else{
+            //hashtable updates
             table.setMinMax(page);
             page.serialize();
         }
 
-        //hashtable updates
 
 
     }
@@ -277,8 +275,11 @@ public class DBApp {
             if (hasCK) {
                 //binary search to locate the page
                 Comparable ckValue = (Comparable) htblColNameValue.get(table.getClusteringKey());
-            try{
+
                 Page locatedPage = table.getPageToModify(ckValue);
+
+                if(locatedPage == null)
+                    return;
 
 
                 int tupleIndex = locatedPage.binarySearchInPage(table.getClusteringKey(), ((Comparable) ckValue));
@@ -290,10 +291,7 @@ public class DBApp {
                 if (!isMatch(htblColNameValue, tuple))
                     return;
                 locatedPage.getTuples().remove(tuple);
-                table.updatePageDelete(locatedPage);}
-            catch(DBAppException db){
-
-            }
+                table.updatePageDelete(locatedPage);
 
             } else {
                 Vector<Integer> ids = new Vector<Integer>(table.getHtblPageIdMinMax().keySet());
@@ -382,6 +380,8 @@ public class DBApp {
             Comparable ckValue = (Comparable) parse(strClusteringKeyValue, table.getCkType());
 
             Page locatedPage = table.getPageToModify(ckValue);
+            if(locatedPage == null)
+                return;
 
             int tupleIndex = locatedPage.binarySearchInPage(table.getClusteringKey(), ((Comparable) ckValue));
 
@@ -650,8 +650,8 @@ public class DBApp {
         DBApp dbApp = new DBApp();
         dbApp.init();
 
-        //dbApp.createTable("Students", "age", htblColNameType, htblColNameMin, htblColNameMax);
-        // dbApp.insertIntoTable("Students", tuple0);
+//        dbApp.createTable("Students", "age", htblColNameType, htblColNameMin, htblColNameMax);
+//         dbApp.insertIntoTable("Students", tuple0);
 //      dbApp.insertIntoTable("Students", tuple2);
 //        dbApp.insertIntoTable("Students", tuple6);
 //         dbApp.insertIntoTable("Students", tuple7);
@@ -664,24 +664,24 @@ public class DBApp {
 //        dbApp.insertIntoTable("Students", tuple10);
 //
 //        dbApp.insertIntoTable("Students", tuple11);
-         dbApp.insertIntoTable("Students", tuple12);
+//         dbApp.insertIntoTable("Students", tuple12);
 
 
-
+//
 //        Hashtable<String, Object> updateHtbl = new Hashtable<>();
 //        updateHtbl.put("gpa", 3.0);
 //        updateHtbl.put("name", "bonii");
-//       dbApp.updateTable("Students", "7", updateHtbl);
-
+//       dbApp.updateTable("Students", "2", updateHtbl);
+//
          Hashtable<String,Object> deletingCriteria0 = new Hashtable<>();
-         Hashtable<String,Object> deletingCriteria1 = new Hashtable<>();
-         Hashtable<String,Object> deletingCriteria2 = new Hashtable<>();
-         deletingCriteria0.put( "age", 2);
+//         Hashtable<String,Object> deletingCriteria1 = new Hashtable<>();
+//         Hashtable<String,Object> deletingCriteria2 = new Hashtable<>();
+         deletingCriteria0.put( "name", "sara");
 //         deletingCriteria1.put("gpa", 2.3);
 //         deletingCriteria2.put( "name", "nada");
 //       deletingCriteria.put("name","Lobna");
 
-//        dbApp.deleteFromTable("Students", deletingCriteria0);
+        dbApp.deleteFromTable("Students", deletingCriteria0);
 //        dbApp.deleteFromTable("Students", deletingCriteria1);
 //        dbApp.deleteFromTable("Students", deletingCriteria2);
 
@@ -695,22 +695,6 @@ public class DBApp {
             p.serialize();
         }
     }
-
-
-    //testing
-    public static void main2(String[] args) throws IOException, ClassNotFoundException {
-        DBApp dbApp = new DBApp();
-        dbApp.init();
-
-        Table table = Table.deserialize("pcs");
-
-        for (int id : table.getHtblPageIdMinMax().keySet()) {
-            Page p = Page.deserialize(table.getName(), id);
-            System.out.println("PAGE " + id);
-            System.out.println(p.getTuples());
-            System.out.println("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
-            p.serialize();
-        }
-    }
+    
 
 }

@@ -179,8 +179,7 @@ public class Table implements Serializable {
         int locatedPageID = this.binarySearchInTable(((Comparable) ckValue));
 
         if (locatedPageID == -1)
-            throw new DBAppException("This tuple does not exist");
-
+            return null;
         return Page.deserialize(this.getName(), locatedPageID);
     }
 
