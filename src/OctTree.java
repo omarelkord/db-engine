@@ -40,10 +40,12 @@ public class OctTree {
         bottom=top=z;
 
     Cube bound = new Cube(front,back,left,right,top,bottom);
-    System.out.print(bound.front+" "+bound.back);
+    //System.out.print(bound.front+" "+bound.back);
     return searchWithBoundry(bound);
 
     }
+
+
 
     public Vector<Point> searchWithBoundry(Cube bound){
         Vector<Point> foundPoints = new Vector<>();
@@ -53,7 +55,7 @@ public class OctTree {
         if(!divided){
             for (Point item: items){
                 if (this.boundry.checkPointsInBoundry(item,bound)){
-                    System.out.println(item);
+                    //System.out.println(item);
                             foundPoints.add(item);}
             }
         }
@@ -65,8 +67,6 @@ public class OctTree {
 
 
         return foundPoints;
-
-
     }
 
     public boolean insertInTree(Point point){
@@ -83,7 +83,8 @@ public class OctTree {
              if(items.size()<this.capacity){
                 items.add(point);
                 return true;
-             }else
+             }
+             else
              divide();}
          for(OctTree c : this.children) {
              if(c.insertInTree(point))
@@ -126,7 +127,7 @@ public class OctTree {
 //        System.out.println(child4.centre);
 //        System.out.println(child5.centre);
 //        System.out.println(child6.centre);
-//                  System.out.println(child7.centre+ " "+child7.front+" "+child7.back+" "+child7.left+" "+child7.right+" "+child7.top);
+//        System.out.println(child7.centre+ " "+child7.front+" "+child7.back+" "+child7.left+" "+child7.right+" "+child7.top);
 //        System.out.println(child8.centre);
 
 
@@ -147,6 +148,62 @@ public class OctTree {
             }
         }
         divided=true;
+    }
+    public boolean updateTree(Point old,Point curr ){
+        deleteInTree(old.x,old.y,old.z);
+        return insertInTree(curr);
+    }
+
+    public void deleteInTree(Object x,Object y, Object z){
+        Object front, back,right,left,bottom,top=null;
+        if(x== null){
+            front=this.boundry.front;
+            back= this.boundry.back;
+        }
+        else
+            front=back = x;
+
+        if(y==null){
+            right=this.boundry.right;
+            left= this.boundry.left;
+        }
+        else
+            right=left=y;
+
+        if(z==null){
+            bottom = this.boundry.bottom;
+            top = this.boundry.top; }
+        else
+            bottom=top=z;
+
+        Cube bound = new Cube(front,back,left,right,top,bottom);
+        //System.out.print(bound.front+" "+bound.back);
+        deleteWithBoundry(bound);
+    }
+
+    public void deleteWithBoundry(Cube bound){
+        if(!boundry.intersects(bound)){
+            return;
+        }
+        if(!divided){
+
+            for (int i =0;i<items.size();) {
+                if(this.boundry.checkPointsInBoundry(items.get(i),bound))
+                    this.items.remove(items.get(i));
+
+                else
+                    i++;
+            }
+        }
+        else
+            for(OctTree child : children){
+                child.deleteWithBoundry(bound);
+
+            }
+
+
+
+
     }
 
     public void printTree() {
@@ -195,9 +252,9 @@ public class OctTree {
     }
 
     public static void main(String[] args){
-        Cube boundry = new Cube(100,0,0,100,100,0);
-        OctTree t = new OctTree(3,boundry);
-        Random random = new Random();
+            Cube boundry = new Cube(100,0,0,100,100,0);
+            OctTree t = new OctTree(3,boundry);
+            Random random = new Random();
             Point point1 = new Point(5,5,5);
             t.insertInTree(point1);
             Point point2 = new Point(10,10,10);
@@ -210,8 +267,8 @@ public class OctTree {
             t.insertInTree(point5);
             Point point6 = new Point(30,30,30);
             t.insertInTree(point6);
-            System.out.println(t.searchPoint(null,30,20));
-            //t.printTree();
+            t.deleteInTree(null,20,20);
+            t.printTree();
 
     }
 }
@@ -264,6 +321,7 @@ class Cube {
         return null;
 
     }
+
 
     public static Object mean(Object upper,Object lower){
        if(upper instanceof Integer)
