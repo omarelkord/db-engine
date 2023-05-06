@@ -9,8 +9,14 @@ public class Table implements Serializable {
     private Hashtable<Integer, Pair> htblPageIdMinMax;
     private String clusteringKey;
     private String ckType;
+
+
     private int numOfCols;
     private Vector<String> columnNames;
+
+    private Vector<Index> indexes;
+
+
 
 
 //    public static final String TABLE_DIRECTORY = "D:\\db-engine\\src\\main\\resources\\data\\";

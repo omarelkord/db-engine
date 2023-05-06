@@ -12,8 +12,10 @@ public class DBApp {
     private Vector<String> dataTypes;
     private int maxNoRowsInPage;
     private int maxEntriesInNode;
+
 //    public static final String METADATA_PATH = "D:\\db-engine\\src\\main\\resources\\metadata.csv";
     public static final String METADATA_PATH = "./src/main/resources/metadata.csv";
+    public static final String TEMP_PATH = "./src/main/resources/temp.csv";
 //    public static final String CONFIG_PATH = "D:\\db-engine\\src\\main\\resources\\DBApp.config";
     public static final String CONFIG_PATH = "./src/main/resources/DBApp.config";
 
@@ -86,6 +88,138 @@ public class DBApp {
 
     }
 
+    public void createIndex(String strTableName,
+                            String[] strarrColName) throws Exception{
+        verifyIndexCreation(strTableName,strarrColName);
+        Pair pair =  modifyCsvForIndex(strTableName,strarrColName);
+        Vector<Pair> info = (Vector<Pair>) pair.getMin();
+        Vector<String> colNames = (Vector<String>)pair.getMax();
+        String[] colNamesArray = colNames.toArray(new String[0]);
+        System.out.println(info);
+        Object minX = info.get(0).getMin();
+        Object maxX = info.get(0).getMax();
+
+        Object minY = info.get(1).getMin();
+        Object maxY = info.get(1).getMax();
+
+        Object minZ = info.get(2).getMin();
+        Object maxZ = info.get(2).getMax();
+
+        Cube boundary = new Cube(maxX,minX,minY,maxY,maxZ,minZ);
+        int capacity =  Integer.parseInt(readConfig(DBApp.CONFIG_PATH).getProperty("MaximumEntriesinOctreeNode"));
+
+        OctTree octree = new OctTree(capacity,boundary);
+        Table table = Table.deserialize(strTableName);
+
+        String name = strarrColName[0]+strarrColName[1]+strarrColName[2]+"Index";
+        Index index = new Index(strTableName,name,colNamesArray,octree);
+
+
+        table.getIndexes().add(index);
+
+        index.populate();
+        table.serialize();
+
+
+    }
+
+    public void verifyIndexCreation(String strTableName,String[]strarrColName) throws Exception {
+        //checking inputs to the createIndex method are fine
+        if (!tableNames.contains(strTableName))
+            throw new DBAppException("Table not found");
+
+        Table table = Table.deserialize(strTableName);
+
+        if (strarrColName.length != 3)
+            throw new DBAppException("Index should be created on three columns");
+
+        for (String column : strarrColName)
+            if (!table.getColumnNames().contains(column))
+                throw new DBAppException(column + " field does not exist in the table");
+        //inputs to the createIndex method are fine
+        //checking to see if column already has an index or not
+
+        BufferedReader br = new BufferedReader(new FileReader(METADATA_PATH));
+
+        String line = br.readLine();
+        String[] content = line.split(",");
+
+        while (line != null) {
+
+            content = line.split(",");
+            String tableName = content[0];
+            String colName = content[1];
+            String indexName = content[4];
+
+
+            if (!tableName.equals(table.getName())) {
+                line = br.readLine();
+                continue;
+            }
+            for (int i=0; i < strarrColName.length; i++)
+                if (colName.equals(strarrColName[i]) && !indexName.equals("null")) {
+                    throw new DBAppException("Table already has an index on this column");
+                }
+            line = br.readLine();
+        }
+        br.close();
+        table.serialize();
+    }
+
+    public Pair modifyCsvForIndex(String strTableName,
+                                  String[] strarrColName) throws Exception{
+        BufferedReader reader = new BufferedReader(new FileReader(METADATA_PATH));
+
+        // Create a temporary file for writing the modified content
+
+        File tempFile = new File(TEMP_PATH);
+        PrintWriter writer = new PrintWriter(tempFile);
+
+        // Read each line of the file and modify the desired line
+        String line = reader.readLine();
+        String[] content;
+
+        Vector<String> strVecColName = new Vector<String>();
+        Collections.addAll(strVecColName,strarrColName);
+        Vector<String> columnName = new Vector<>();
+        Vector<Pair> minMax = new Vector<Pair>();
+
+        while(line!=null){
+            content = line.split(",");
+            String table = content[0];
+            String colName = content[1];
+            if(!table.equals(strTableName))
+                writer.println(line);
+
+            else if(!strVecColName.contains(colName))
+                writer.println(line);
+            else {
+                String colType = content[2];
+                String isClusteringKey = content[3];
+                String indexName = strarrColName[0]+strarrColName[1]+strarrColName[2]+ "Index";
+                String indexType = "Octree";
+                String min = content[6];
+                String max = content[7];
+                String row = table + ", " + colName + ", " + colType + ", " + isClusteringKey + ", " + indexName+", " +
+                        indexType + ", " + min + ", " + max;
+                writer.println(row);
+
+                Pair pair = new Pair(parse(min, colType), parse(max , colType));
+                columnName.add(colName);
+                minMax.add(pair);
+            }
+            line = reader.readLine();
+        }
+        reader.close();
+        writer.close();
+        File originalFile = new File(METADATA_PATH);
+        originalFile.delete();
+        tempFile.renameTo(originalFile);
+
+        return new Pair(minMax,columnName);
+
+    }
+
     public void writeInCSV(String strTableName,
                            String strClusteringKeyColumn,
                            Hashtable<String, String> htblColNameType,
@@ -137,6 +271,7 @@ public class DBApp {
             throw new DBAppException(e.getMessage());
         }
     }
+
 
     public void verifyInsert(String strTableName, Hashtable<String, Object> htblColNameValue) throws Exception {
 
@@ -197,6 +332,7 @@ public class DBApp {
             }
 
             line = br.readLine();
+
         }
 
         //VERIFY DUPE CK
@@ -650,21 +786,21 @@ public class DBApp {
         DBApp dbApp = new DBApp();
         dbApp.init();
 
-        //dbApp.createTable("Students", "age", htblColNameType, htblColNameMin, htblColNameMax);
-        // dbApp.insertIntoTable("Students", tuple0);
+      dbApp.createTable("Students", "age", htblColNameType, htblColNameMin, htblColNameMax);
+//      dbApp.insertIntoTable("Students", tuple0);
 //      dbApp.insertIntoTable("Students", tuple2);
-//        dbApp.insertIntoTable("Students", tuple6);
-//         dbApp.insertIntoTable("Students", tuple7);
-//        dbApp.insertIntoTable("Students", tuple8);
-//        dbApp.insertIntoTable("Students", tuple1);
-//        dbApp.insertIntoTable("Students", tuple3);
-//          dbApp.insertIntoTable("Students", tuple5);
-//            dbApp.insertIntoTable("Students", tuple4);
-//        dbApp.insertIntoTable("Students", tuple9);
-//        dbApp.insertIntoTable("Students", tuple10);
+//      dbApp.insertIntoTable("Students", tuple6);
+      dbApp.insertIntoTable("Students", tuple7);
+      dbApp.insertIntoTable("Students", tuple8);
+      dbApp.insertIntoTable("Students", tuple1);
+      dbApp.insertIntoTable("Students", tuple3);
+      dbApp.insertIntoTable("Students", tuple5);
+//      dbApp.insertIntoTable("Students", tuple4);
+//      dbApp.insertIntoTable("Students", tuple9);
+//      dbApp.insertIntoTable("Students", tuple10);
 //
-//        dbApp.insertIntoTable("Students", tuple11);
-         dbApp.insertIntoTable("Students", tuple12);
+//      dbApp.insertIntoTable("Students", tuple11);
+//      dbApp.insertIntoTable("Students", tuple12);
 
 
 
@@ -677,16 +813,17 @@ public class DBApp {
          Hashtable<String,Object> deletingCriteria1 = new Hashtable<>();
          Hashtable<String,Object> deletingCriteria2 = new Hashtable<>();
          deletingCriteria0.put( "age", 2);
-//         deletingCriteria1.put("gpa", 2.3);
-//         deletingCriteria2.put( "name", "nada");
+//       deletingCriteria1.put("gpa", 2.3);
+//       deletingCriteria2.put( "name", "nada");
 //       deletingCriteria.put("name","Lobna");
 
 //        dbApp.deleteFromTable("Students", deletingCriteria0);
 //        dbApp.deleteFromTable("Students", deletingCriteria1);
 //        dbApp.deleteFromTable("Students", deletingCriteria2);
+        dbApp.createIndex("Students",new String[] {"age","name","gpa"});
 
         Table table = Table.deserialize("Students");
-
+        table.getIndexes().get(0).octree.printTree();
         for (int id : table.getHtblPageIdMinMax().keySet()) {
             Page p = Page.deserialize(table.getName(), id);
             System.out.println("PAGE " + id);
