@@ -9,27 +9,32 @@ public class Table implements Serializable {
     private Hashtable<Integer, Pair> htblPageIdMinMax;
     private String clusteringKey;
     private String ckType;
-
-
     private int numOfCols;
     private Vector<String> columnNames;
-
     private Vector<Index> indexes;
-
-
-
-
-//    public static final String TABLE_DIRECTORY = "D:\\db-engine\\src\\main\\resources\\data\\";
-    public static final String TABLE_DIRECTORY = "./src/main/resources/data/";
-
-    private int maxIDsoFar;
+    private Hashtable<String, Index> htblIndexName;
 
     public Table(String strTableName, String strClusteringKeyColumn) {
         this.name = strTableName;
         this.clusteringKey = strClusteringKeyColumn;
         htblPageIdMinMax = new Hashtable<>();
+        htblIndexName = new Hashtable<>();
+        indexes = new Vector<>();
         maxIDsoFar = -1;
     }
+
+    public Hashtable<String, Index> getHtblIndexName() {
+        return htblIndexName;
+    }
+
+    public void setHtblIndexName(Hashtable<String, Index> htblIndexName) {
+        this.htblIndexName = htblIndexName;
+    }
+
+    //    public static final String TABLE_DIRECTORY = "D:\\db-engine\\src\\main\\resources\\data\\";
+    public static final String TABLE_DIRECTORY = "./src/main/resources/data/";
+
+    private int maxIDsoFar;
 
     public int getNumOfCols() {
         return numOfCols;
@@ -104,8 +109,20 @@ public class Table implements Serializable {
         return locatedPage;
     }
 
+    public void setClusteringKey(String clusteringKey) {
+        this.clusteringKey = clusteringKey;
+    }
+
+    public Vector<Index> getIndexes() {
+        return indexes;
+    }
+
+    public void setIndexes(Vector<Index> indexes) {
+        this.indexes = indexes;
+    }
+
     public Integer getPageIDToInsert(Comparable value){
-        Vector<Integer> sortedID = new Vector<Integer>(this.htblPageIdMinMax.keySet());
+        Vector<Integer> sortedID = new Vector<>(this.htblPageIdMinMax.keySet());
         Collections.sort(sortedID);
 
         int left = 0;

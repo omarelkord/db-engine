@@ -114,16 +114,16 @@ public class DBApp {
         String name = strarrColName[0]+strarrColName[1]+strarrColName[2]+"Index";
         Index index = new Index(strTableName,name,colNamesArray,octree);
 
-
-        table.getIndexes().add(index);
+//        table.getIndexes().add(index);
+        table.getHtblIndexName().put(name, index);
 
         index.populate();
+
+        index.serialize();
         table.serialize();
-
-
     }
 
-    public void verifyIndexCreation(String strTableName,String[]strarrColName) throws Exception {
+    public void verifyIndexCreation(String strTableName, String[]strarrColName) throws Exception {
         //checking inputs to the createIndex method are fine
         if (!tableNames.contains(strTableName))
             throw new DBAppException("Table not found");
@@ -260,14 +260,27 @@ public class DBApp {
                         htblColNameValue.put(colName, NullObject.getInstance());
             }
 
-            //HANDLES BOTH CASES: A) THERE ARE ZERO PAGES   B) THERE IS NO VIABLE PAGE TO INSERT IN
             if (locatedPage == null)
-                newPageInit(htblColNameValue, table);
+                locatedPage = newPageInit(htblColNameValue, table);
+
             else
                 insertAndShift(htblColNameValue, locatedPage.getId(), table);
 
+            int ref = locatedPage.getId();
+
+            if(ckValue.compareTo(table.getHtblPageIdMinMax().get(ref).getMax()) >= 0 && locatedPage.isFull())
+                ref++;
+
+            for(String name : table.getHtblIndexName().keySet()){
+                Index index = Index.deserialize(table.getName(), name);
+                System.out.println("Inserted in " + index.getName() + " into page " + ref);
+                index.insert(htblColNameValue, ref);
+                index.serialize();
+            }
             table.serialize();
+
         }catch (Exception e){
+            e.printStackTrace();
             throw new DBAppException(e.getMessage());
         }
     }
@@ -625,7 +638,7 @@ public class DBApp {
        // page=null;
     }
 
-    public void newPageInit(Hashtable<String, Object> tuple, Table table) throws IOException {
+    public Page newPageInit(Hashtable<String, Object> tuple, Table table) throws IOException {
         table.setMaxIDsoFar(table.getMaxIDsoFar()+1);
         Page newPage = new Page(table.getName(), table.getMaxIDsoFar());
 
@@ -637,6 +650,7 @@ public class DBApp {
         table.getHtblPageIdMinMax().put(id, new Pair(ckValue, ckValue));
 
         newPage.serialize();
+        return newPage;
     }
 
     public static boolean sameType(Object data, String dataType) throws ClassNotFoundException {
@@ -786,15 +800,15 @@ public class DBApp {
         DBApp dbApp = new DBApp();
         dbApp.init();
 
-      dbApp.createTable("Students", "age", htblColNameType, htblColNameMin, htblColNameMax);
+//      dbApp.createTable("Students", "age", htblColNameType, htblColNameMin, htblColNameMax);
 //      dbApp.insertIntoTable("Students", tuple0);
 //      dbApp.insertIntoTable("Students", tuple2);
 //      dbApp.insertIntoTable("Students", tuple6);
       dbApp.insertIntoTable("Students", tuple7);
-      dbApp.insertIntoTable("Students", tuple8);
-      dbApp.insertIntoTable("Students", tuple1);
-      dbApp.insertIntoTable("Students", tuple3);
-      dbApp.insertIntoTable("Students", tuple5);
+//      dbApp.insertIntoTable("Students", tuple8);
+//      dbApp.insertIntoTable("Students", tuple1);
+//      dbApp.insertIntoTable("Students", tuple3);
+//      dbApp.insertIntoTable("Students", tuple5);
 //      dbApp.insertIntoTable("Students", tuple4);
 //      dbApp.insertIntoTable("Students", tuple9);
 //      dbApp.insertIntoTable("Students", tuple10);
@@ -812,18 +826,24 @@ public class DBApp {
          Hashtable<String,Object> deletingCriteria0 = new Hashtable<>();
          Hashtable<String,Object> deletingCriteria1 = new Hashtable<>();
          Hashtable<String,Object> deletingCriteria2 = new Hashtable<>();
-         deletingCriteria0.put( "age", 2);
+//         deletingCriteria0.put( "age", 2);
 //       deletingCriteria1.put("gpa", 2.3);
-//       deletingCriteria2.put( "name", "nada");
-//       deletingCriteria.put("name","Lobna");
+//       deletingCriteria2.put( "name", "sara");
 
 //        dbApp.deleteFromTable("Students", deletingCriteria0);
 //        dbApp.deleteFromTable("Students", deletingCriteria1);
 //        dbApp.deleteFromTable("Students", deletingCriteria2);
-        dbApp.createIndex("Students",new String[] {"age","name","gpa"});
+
+//        dbApp.createIndex("Students",new String[] {"age","name","gpa"});
+//        table.getIndexes().get(0).octree.printTree();
+
 
         Table table = Table.deserialize("Students");
-        table.getIndexes().get(0).octree.printTree();
+        Index index2 = table.getHtblIndexName().get("agenamegpaIndex");
+        index2.octree.printTree();
+//        System.out.println();
+//        System.out.println(table.getHtblIndexName());
+
         for (int id : table.getHtblPageIdMinMax().keySet()) {
             Page p = Page.deserialize(table.getName(), id);
             System.out.println("PAGE " + id);
