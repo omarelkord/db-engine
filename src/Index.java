@@ -58,7 +58,7 @@ public class Index implements Serializable {
     public void populate() throws Exception{
 
         Table table = Table.deserialize(tableName);
-        Vector<Integer> ids = new Vector<Integer>(table.getHtblPageIdMinMax().keySet());
+        Vector<Integer> ids = new Vector<>(table.getHtblPageIdMinMax().keySet());
         for (Integer id : ids) {
             Page currPage = Page.deserialize(table.getName(), id);
 
@@ -70,7 +70,6 @@ public class Index implements Serializable {
             }
             currPage.serialize();
         }
-        table.serialize();
     }
 
     public void serialize() throws IOException {
@@ -87,7 +86,6 @@ public class Index implements Serializable {
         inputStream.close();
         return index;
     }
-
 
 }
 

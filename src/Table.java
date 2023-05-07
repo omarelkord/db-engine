@@ -11,25 +11,19 @@ public class Table implements Serializable {
     private String ckType;
     private int numOfCols;
     private Vector<String> columnNames;
-    private Vector<Index> indexes;
-    private Hashtable<String, Index> htblIndexName;
+    private Vector<String> indexNames;
+
 
     public Table(String strTableName, String strClusteringKeyColumn) {
         this.name = strTableName;
         this.clusteringKey = strClusteringKeyColumn;
         htblPageIdMinMax = new Hashtable<>();
-        htblIndexName = new Hashtable<>();
-        indexes = new Vector<>();
+        indexNames = new Vector<>();
         maxIDsoFar = -1;
     }
 
-    public Hashtable<String, Index> getHtblIndexName() {
-        return htblIndexName;
-    }
 
-    public void setHtblIndexName(Hashtable<String, Index> htblIndexName) {
-        this.htblIndexName = htblIndexName;
-    }
+
 
     //    public static final String TABLE_DIRECTORY = "D:\\db-engine\\src\\main\\resources\\data\\";
     public static final String TABLE_DIRECTORY = "./src/main/resources/data/";
@@ -113,12 +107,8 @@ public class Table implements Serializable {
         this.clusteringKey = clusteringKey;
     }
 
-    public Vector<Index> getIndexes() {
-        return indexes;
-    }
-
-    public void setIndexes(Vector<Index> indexes) {
-        this.indexes = indexes;
+    public Vector<String> getIndexNames() {
+        return indexNames;
     }
 
     public Integer getPageIDToInsert(Comparable value){

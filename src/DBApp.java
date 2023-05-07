@@ -115,11 +115,11 @@ public class DBApp {
         Index index = new Index(strTableName,name,colNamesArray,octree);
 
 //        table.getIndexes().add(index);
-        table.getHtblIndexName().put(name, index);
+        table.getIndexNames().add(name);
 
         index.populate();
-
         index.serialize();
+
         table.serialize();
     }
 
@@ -271,12 +271,13 @@ public class DBApp {
             if(ckValue.compareTo(table.getHtblPageIdMinMax().get(ref).getMax()) >= 0 && locatedPage.isFull())
                 ref++;
 
-            for(String name : table.getHtblIndexName().keySet()){
-                Index index = Index.deserialize(table.getName(), name);
+            for(String idxName : table.getIndexNames()){
+                Index index = Index.deserialize(table.getName(), idxName);
                 System.out.println("Inserted in " + index.getName() + " into page " + ref);
                 index.insert(htblColNameValue, ref);
                 index.serialize();
             }
+
             table.serialize();
 
         }catch (Exception e){
@@ -804,12 +805,12 @@ public class DBApp {
 //      dbApp.insertIntoTable("Students", tuple0);
 //      dbApp.insertIntoTable("Students", tuple2);
 //      dbApp.insertIntoTable("Students", tuple6);
-      dbApp.insertIntoTable("Students", tuple7);
+//      dbApp.insertIntoTable("Students", tuple7);
 //      dbApp.insertIntoTable("Students", tuple8);
 //      dbApp.insertIntoTable("Students", tuple1);
 //      dbApp.insertIntoTable("Students", tuple3);
 //      dbApp.insertIntoTable("Students", tuple5);
-//      dbApp.insertIntoTable("Students", tuple4);
+      dbApp.insertIntoTable("Students", tuple4);
 //      dbApp.insertIntoTable("Students", tuple9);
 //      dbApp.insertIntoTable("Students", tuple10);
 //
@@ -839,9 +840,10 @@ public class DBApp {
 
 
         Table table = Table.deserialize("Students");
-        Index index2 = table.getHtblIndexName().get("agenamegpaIndex");
-        index2.octree.printTree();
-//        System.out.println();
+//
+        Index index3 = Index.deserialize(table.getName(), "agenamegpaIndex");
+        index3.octree.printTree();
+//        System.out.println(index3);
 //        System.out.println(table.getHtblIndexName());
 
         for (int id : table.getHtblPageIdMinMax().keySet()) {
