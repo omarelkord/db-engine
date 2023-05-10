@@ -97,9 +97,14 @@ public class DBApp {
         System.out.println(info);
         Object minX = info.get(0).getMin();
         Object maxX = info.get(0).getMax();
+        System.out.print("MIN X = ");
+        System.out.println(minX);
 
         Object minY = info.get(1).getMin();
         Object maxY = info.get(1).getMax();
+        System.out.print("MIN Y = ");
+        System.out.println(minY);
+
 
         Object minZ = info.get(2).getMin();
         Object maxZ = info.get(2).getMax();
@@ -111,11 +116,15 @@ public class DBApp {
         Table table = Table.deserialize(strTableName);
 
         String name = strarrColName[0] + strarrColName[1] + strarrColName[2] + "Index";
+        for(int i=0;i<colNamesArray.length;i++)
+            System.out.println(colNamesArray[i]);
         Index index = new Index(strTableName, name, colNamesArray, octree);
 
-//        table.getIndexes().add(index);
-        table.getIndexNames().add(name);
+//        Vector<String> indexcolNames = new Vector<>();
+//        Collections.addAll(indexcolNames, strarrColName);
 
+//      table.getIndexes().add(index);
+        table.getHtblIndexNameColumn().put(name, colNames);
         index.populate();
         index.serialize();
 
@@ -270,7 +279,7 @@ public class DBApp {
             if (ckValue.compareTo(table.getHtblPageIdMinMax().get(ref).getMax()) >= 0 && locatedPage.isFull())
                 ref++;
 
-            for (String idxName : table.getIndexNames()) {
+            for (String idxName : table.getHtblIndexNameColumn().keySet()) {
                 Index index = Index.deserialize(table.getName(), idxName);
                 System.out.println("Inserted in " + index.getName() + " into page " + ref);
                 index.insert(htblColNameValue, ref);
@@ -692,7 +701,7 @@ public class DBApp {
             br = new BufferedReader(new FileReader(METADATA_PATH));
             line = br.readLine();
         } catch (Exception ignored) {
-            System.out.println("can't find metadata");
+            System.out.println("Can't find metadata");
             return new Vector<>();
         }
 
@@ -714,12 +723,19 @@ public class DBApp {
         return tableNames;
     }
 
-    public void verifyOperators(String[] strarrOperators) throws DBAppException {
+    public void verifySelect(SQLTerm[] arrSQLTerms, String[] strarrOperators) throws Exception {
+        if (strarrOperators.length != arrSQLTerms.length - 1)
+            throw new DBAppException("Number of operators is incorrect");
+
         for (String s : strarrOperators) {
-            System.out.println("Inf loop at verifyOperators");
             if (s.equals("AND") || s.equals("OR") || s.equals("XOR"))
                 continue;
             throw new DBAppException("Invalid operator");
+        }
+
+        for (SQLTerm term : arrSQLTerms) {
+            term.checkOperator();
+            verifySelectTypes(term);
         }
     }
 
@@ -760,7 +776,6 @@ public class DBApp {
 
     public static boolean operate(Object op1, Object op2, String operator) {
         Comparable op3 = (Comparable) op1;
-//        op1 = (Comparable) op1;
         return switch (operator) {
             case "=" -> op3.equals(op2);
             case "!=" -> !op3.equals(op2);
@@ -788,46 +803,93 @@ public class DBApp {
         return res;
     }
 
-    public static boolean compute(Vector<Boolean> boolArr, String[] strarrOperators){
+    public static boolean compute(Vector<Boolean> boolArr, String[] strarrOperators) {
         boolean res = boolArr.remove(0);
 
-        for(int i = 0; i < boolArr.size(); i++){
-            boolean op1 =  boolArr.get(i);
+        for (int i = 0; i < boolArr.size(); i++) {
+            boolean op1 = boolArr.get(i);
             String operator = strarrOperators[i];
             res = operate(res, op1, operator);
-//            System.out.println("Partial result = " + res);
         }
 
         return res;
     }
 
+    public static boolean isAllAnd(String[] strarrOperators) {
+        for (String op : strarrOperators)
+            if (!op.equals("AND"))
+                return false;
+        return true;
+    }
 
-    public Iterator selectFromTable(SQLTerm[] arrSQLTerms, String[] strarrOperators) throws DBAppException, IOException, ClassNotFoundException {
-        verifyOperators(strarrOperators);
 
-        for (SQLTerm term : arrSQLTerms) {
-            term.checkOperator();
-            verifySelectTypes(term);
-        }
-        Vector<Hashtable<String, Object>> resultTuples = new Vector<Hashtable<String, Object>>();
+    public Iterator selectFromTable(SQLTerm[] arrSQLTerms, String[] strarrOperators) throws Exception {
+
+        verifySelect(arrSQLTerms, strarrOperators);
 
         String tableName = arrSQLTerms[0].get_strTableName();
         Table table = Table.deserialize(tableName);
+        Hashtable<String, Vector<String>> htblIdxNameCol = table.getHtblIndexNameColumn();
 
         ResultSet rs = new ResultSet();
 
-        for(int id : table.getHtblPageIdMinMax().keySet()){
-            Page page = Page.deserialize(tableName, id);
-            for(Hashtable<String, Object> tuple : page.getTuples()){
-                Vector<Boolean> bools = getSatisfied(tuple, arrSQLTerms);
-                if(compute(bools, strarrOperators)){
-                    rs.getResultTuples().add(tuple);
+        String indexFound = "";
+        Vector<SQLTerm> termsFound = null;
+
+        if (isAllAnd(strarrOperators))
+            for (String idxName : htblIdxNameCol.keySet()) {
+                int c = 0;
+                termsFound = new Vector<>();
+                Vector<String> cols = htblIdxNameCol.get(idxName);
+
+                for (SQLTerm sqlTerm : arrSQLTerms)
+                    if (cols.contains(sqlTerm.get_strColumnName())) {
+                        termsFound.add(sqlTerm);
+                        c++;
+                    }
+
+                if (c == 3) {
+                    indexFound = idxName;
+                    break;
+                }
+            }
+
+
+        if (!indexFound.equals("")) {
+            //INDEX BASED
+            System.out.println("I am in index based");
+            Index idx = Index.deserialize(tableName, indexFound);
+            Vector<Integer> references = idx.search(termsFound);
+
+            for (int ref : references) {
+                Page p = Page.deserialize(tableName, ref);
+
+                for (Hashtable<String, Object> tuple : p.getTuples()) {
+                    Vector<Boolean> bools = getSatisfied(tuple, arrSQLTerms);
+                    if (compute(bools, strarrOperators))
+                        rs.getResultTuples().add(tuple);
+                }
+            }
+            idx.serialize();
+        } else {
+            //LINEAR SCAN TABLE
+            System.out.println("I am in linear scanning");
+            for (int id : table.getHtblPageIdMinMax().keySet()) {
+                Page page = Page.deserialize(tableName, id);
+                for (Hashtable<String, Object> tuple : page.getTuples()) {
+                    Vector<Boolean> bools = getSatisfied(tuple, arrSQLTerms);
+                    if (compute(bools, strarrOperators)) {
+                        rs.getResultTuples().add(tuple);
+                    }
                 }
             }
         }
 
+        table.serialize();
+
         return rs;
     }
+
 
     public static void main(String[] args) throws Exception {
 
@@ -846,8 +908,6 @@ public class DBApp {
         tuple2.put("name", "Omar");
         tuple2.put("gpa", 4.0);
 
-        SQLTerm sqlTerm = new SQLTerm("Students", "gpa", ">", 2.0);
-        SQLTerm sqlTerm1 = new SQLTerm("Students", "name", "=", "Haboosh");
 
 //        SQLTerm[] sqlTerms = {sqlTerm, sqlTerm1};
 //
@@ -856,7 +916,6 @@ public class DBApp {
 //
 //        System.out.println(boolArr);
 //        System.out.println(compute(boolArr, strarrOperators));
-
 
 
         Hashtable<String, Object> tuple3 = new Hashtable<>();
@@ -960,34 +1019,34 @@ public class DBApp {
 //        dbApp.deleteFromTable("Students", deletingCriteria1);
 //        dbApp.deleteFromTable("Students", deletingCriteria2);
 
-//        dbApp.createIndex("Students",new String[] {"age","name","gpa"});
-//        table.getIndexes().get(0).octree.printTree();
+        SQLTerm sqlTerm = new SQLTerm("Students", "gpa", "=", 2.5);
+        SQLTerm sqlTerm1 = new SQLTerm("Students", "name", "=", "nada");
+        SQLTerm sqlTerm2 = new SQLTerm("Students", "age", "=", 8);
 
-        SQLTerm[] sqlTerms = {sqlTerm, sqlTerm1};
-        String[] strarrOperators = {"AND"};
-
+        SQLTerm[] sqlTerms = {sqlTerm, sqlTerm1, sqlTerm2};
+        String[] strarrOperators = {"AND", "AND"};
 
         Iterator rs = dbApp.selectFromTable(sqlTerms, strarrOperators);
         System.out.println(rs.next());
         System.out.println(rs.next());
         System.out.println(rs.next());
-        System.out.println();
+//        System.out.println();
 
         Table table = Table.deserialize("Students");
+//        dbApp.createIndex("Students", new String[]{"age", "name", "gpa"});
 //
 //        Index index3 = Index.deserialize(table.getName(), "agenamegpaIndex");
 //        index3.octree.printTree();
 //        System.out.println(index3);
 //        System.out.println(table.getHtblIndexName());
 
-        for (int id : table.getHtblPageIdMinMax().keySet()) {
-            Page p = Page.deserialize(table.getName(), id);
-            System.out.println("PAGE " + id);
-            System.out.println(p.getTuples());
-            System.out.println("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
-            p.serialize();
-        }
-
+//        for (int id : table.getHtblPageIdMinMax().keySet()) {
+//            Page p = Page.deserialize(table.getName(), id);
+//            System.out.println("PAGE " + id);
+//            System.out.println(p.getTuples());
+//            System.out.println("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
+//            p.serialize();
+//        }
 
 
     }

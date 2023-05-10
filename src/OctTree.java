@@ -16,11 +16,13 @@ public class OctTree implements Serializable {
         this.capacity = capacity;
         this.boundary = boundary;
         this.items = new Vector<>();
-
     }
 
 
     public Vector<Point> searchPoint(Object x, Object y, Object z) {
+
+        System.out.println("I am in searchPoint in Octree");
+
         Object front, back, right, left, bottom, top = null;
         if (x == null) {
             front = this.boundary.front;
@@ -43,7 +45,6 @@ public class OctTree implements Serializable {
         Cube bound = new Cube(front, back, left, right, top, bottom);
         //System.out.print(bound.front+" "+bound.back);
         return searchWithboundary(bound);
-
     }
 
 
@@ -69,6 +70,13 @@ public class OctTree implements Serializable {
         return foundPoints;
     }
 
+    public static boolean equalPoints(Point p1, Point p2) {
+        boolean cond1 = ((Comparable) p1.x).compareTo(p2.x) == 0;
+        boolean cond2 = ((Comparable) p1.y).compareTo(p2.y) == 0;
+        boolean cond3 = ((Comparable) p1.z).compareTo(p2.z) == 0;
+        return cond1 && cond2 && cond3;
+    }
+
     public boolean insertInTree(Point point) {
         if (!boundary.isInRange((Comparable) point.x, (Comparable) this.boundary.front, (Comparable) this.boundary.back))
             return false;
@@ -77,19 +85,24 @@ public class OctTree implements Serializable {
         if (!boundary.isInRange((Comparable) point.z, (Comparable) this.boundary.top, (Comparable) this.boundary.bottom))
             return false;
 
-
         if (!divided) {
+            for (Point item : items) {
+                if (equalPoints(item, point)) {
+                    item.pageReference.addAll(point.pageReference);
+                    return true;
+                }
+            }
             if (items.size() < this.capacity) {
                 items.add(point);
                 return true;
-             }
-             else
-             divide();}
-         for(OctTree c : this.children) {
-             if(c.insertInTree(point))
-                 return true;
-         }
-         return false;
+            } else
+                divide();
+        }
+        for (OctTree c : this.children) {
+            if (c.insertInTree(point))
+                return true;
+        }
+        return false;
     }
 
     public void divide() {
@@ -284,12 +297,13 @@ class Cube implements Serializable {
 
     public boolean intersects(Cube boundary
     ) {
-        boolean cond1 = ((Comparable) this.front).compareTo((Comparable) boundary.back) < 0;
-        boolean cond2 = ((Comparable) this.back).compareTo((Comparable) boundary.front) > 0;
-        boolean cond3 = ((Comparable) this.right).compareTo((Comparable) boundary.left) < 0;
-        boolean cond4 = ((Comparable) this.left).compareTo((Comparable) boundary.right) > 0;
-        boolean cond5 = ((Comparable) this.top).compareTo((Comparable) boundary.bottom) < 0;
-        boolean cond6 = ((Comparable) this.bottom).compareTo((Comparable) boundary.top) > 0;
+
+        boolean cond1 = ((Comparable) this.front).compareTo(boundary.back) < 0;
+        boolean cond2 = ((Comparable) this.back).compareTo(boundary.front) > 0;
+        boolean cond3 = ((Comparable) this.right).compareTo(boundary.left) < 0;
+        boolean cond4 = ((Comparable) this.left).compareTo(boundary.right) > 0;
+        boolean cond5 = ((Comparable) this.top).compareTo(boundary.bottom) < 0;
+        boolean cond6 = ((Comparable) this.bottom).compareTo(boundary.top) > 0;
 
         return !(cond1 || cond2 || cond3 || cond4 || cond5 || cond6);
     }
@@ -382,13 +396,14 @@ class Cube implements Serializable {
 
 class Point implements Serializable {
     Object x, y, z;
-    int pageReference;
+    Vector<Integer> pageReference;
 
     public Point(Object x, Object y, Object z, int r) {
         this.x = x;
         this.y = y;
         this.z = z;
-        pageReference = r;
+        pageReference = new Vector<>();
+        pageReference.add(r);
     }
 
     public String toString() {

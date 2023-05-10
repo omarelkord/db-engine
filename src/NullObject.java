@@ -21,4 +21,5 @@ public class NullObject implements Serializable {
     public String toString() {
         return "null";
     }
+
 }

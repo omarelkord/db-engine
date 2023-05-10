@@ -11,24 +11,24 @@ public class Table implements Serializable {
     private String ckType;
     private int numOfCols;
     private Vector<String> columnNames;
-    private Vector<String> indexNames;
-
-
-    public Table(String strTableName, String strClusteringKeyColumn) {
-        this.name = strTableName;
-        this.clusteringKey = strClusteringKeyColumn;
-        htblPageIdMinMax = new Hashtable<>();
-        indexNames = new Vector<>();
-        maxIDsoFar = -1;
-    }
-
-
-
+    private Hashtable<String, Vector<String>> htblIndexNameColumn;
 
     //    public static final String TABLE_DIRECTORY = "D:\\db-engine\\src\\main\\resources\\data\\";
     public static final String TABLE_DIRECTORY = "./src/main/resources/data/";
 
     private int maxIDsoFar;
+
+    public Table(String strTableName, String strClusteringKeyColumn) {
+        this.name = strTableName;
+        this.clusteringKey = strClusteringKeyColumn;
+        htblPageIdMinMax = new Hashtable<>();
+        htblIndexNameColumn = new Hashtable<>();
+        maxIDsoFar = -1;
+    }
+
+    public Hashtable<String, Vector<String>> getHtblIndexNameColumn() {
+        return htblIndexNameColumn;
+    }
 
     public int getNumOfCols() {
         return numOfCols;
@@ -105,10 +105,6 @@ public class Table implements Serializable {
 
     public void setClusteringKey(String clusteringKey) {
         this.clusteringKey = clusteringKey;
-    }
-
-    public Vector<String> getIndexNames() {
-        return indexNames;
     }
 
     public Integer getPageIDToInsert(Comparable value){
