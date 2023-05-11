@@ -1064,11 +1064,11 @@ public class DBApp {
         dbApp.init();
 
 //      dbApp.createTable("Students", "age", htblColNameType, htblColNameMin, htblColNameMax);
-      dbApp.insertIntoTable("Students", tuple2);
-      dbApp.insertIntoTable("Students", tuple6);
-      dbApp.insertIntoTable("Students", tuple7);
-      dbApp.insertIntoTable("Students", tuple8);
-      dbApp.insertIntoTable("Students", tuple1);
+//      dbApp.insertIntoTable("Students", tuple2);
+//      dbApp.insertIntoTable("Students", tuple6);
+//      dbApp.insertIntoTable("Students", tuple7);
+//      dbApp.insertIntoTable("Students", tuple8);
+//      dbApp.insertIntoTable("Students", tuple1);
 //      dbApp.insertIntoTable("Students", tuple3);
 //      dbApp.insertIntoTable("Students", tuple5);
 //      dbApp.insertIntoTable("Students", tuple4);
