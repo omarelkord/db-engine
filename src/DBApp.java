@@ -519,9 +519,9 @@ public class DBApp {
         }
     }
 
-    public static void updateIndex(Table table , Hashtable<Integer,Vector<Hashtable<String,Object>>> htblIdTuples){
+    public static void updateIndex(Table table , Hashtable<Integer,Vector<Hashtable<String,Object>>> htblIdTuples) throws Exception{
         for(String idxName : table.getHtblIndexNameColumn().keySet()){
-            Index index = Index.deserialize(tab,idxName);
+            Index index = Index.deserialize(table.getName(),idxName);
             index.deletePoints(htblIdTuples);
             index.serialize();
         }
