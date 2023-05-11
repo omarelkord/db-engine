@@ -18,7 +18,7 @@ public class DBApp {
     //    public static final String CONFIG_PATH = "D:\\db-engine\\src\\main\\resources\\DBApp.config";
     public static final String CONFIG_PATH = "./src/main/resources/DBApp.config";
 
-    public DBApp() {
+    public DBApp(){
 
     }
 
@@ -297,6 +297,7 @@ public class DBApp {
 
     public void verifyInsert(String strTableName, Hashtable<String, Object> htblColNameValue) throws Exception {
 
+
         if (!tableNames.contains(strTableName))
             throw new DBAppException("Table not found");
 
@@ -372,7 +373,16 @@ public class DBApp {
         br.close();
         table.serialize();
     }
+    public void updateIndexReference(Hashtable<String, Object> tuple, int oldID,int newID,Table table) throws IOException, ClassNotFoundException {
+        if(newID==-1)
+            newID= table.getMaxIDsoFar() + 1;
 
+        for (String idxName : table.getHtblIndexNameColumn().keySet()) {
+            Index index = Index.deserialize(table.getName(), idxName);
+            index.updateReference(tuple, oldID,newID);
+            index.serialize();
+        }
+    }
 
     public void insertAndShift(Hashtable<String, Object> tuple, int id, Table table) throws IOException, ClassNotFoundException, DBAppException {
 
@@ -393,6 +403,7 @@ public class DBApp {
             int pageId = table.getNextID(page);
             table.setMinMax(page);
             page.serialize();
+            updateIndexReference(lastTuple,id,pageId,table);
             insertAndShift(lastTuple, pageId, table);
         } else {
             table.setMinMax(page);
@@ -902,11 +913,13 @@ public class DBApp {
         tuple1.put("age", 1);
         tuple1.put("name", "Kord");
         tuple1.put("gpa", 1.6);
+        tuple1.put("semester",2);
 
         Hashtable<String, Object> tuple2 = new Hashtable<>();
         tuple2.put("age", 2);
-        tuple2.put("name", "Omar");
-        tuple2.put("gpa", 4.0);
+        tuple2.put("name", "Kord");
+        tuple2.put("gpa", 1.6);
+        tuple2.put("semester",2);
 
 
 //        SQLTerm[] sqlTerms = {sqlTerm, sqlTerm1};
@@ -922,41 +935,55 @@ public class DBApp {
         tuple3.put("age", 3);
         tuple3.put("name", "Ahmed");
         tuple3.put("gpa", 0.9);
+        tuple3.put("semester",3);
 
         Hashtable<String, Object> tuple4 = new Hashtable<>();
         tuple4.put("age", 4);
         tuple4.put("name", "Malak");
         tuple4.put("gpa", 2.3);
+        tuple4.put("semester",4);
 
         Hashtable<String, Object> tuple5 = new Hashtable<>();
         tuple5.put("age", 5);
         tuple5.put("name", "Menna");
         tuple5.put("gpa", 0.8);
+        tuple5.put("semester",5);
 
         Hashtable<String, Object> tuple6 = new Hashtable<>();
         tuple6.put("age", 6);
         tuple6.put("name", "Lobna");
         tuple6.put("gpa", 1.4);
+        tuple6.put("semester",6);
 
         Hashtable<String, Object> tuple7 = new Hashtable<>();
         tuple7.put("age", 7);
         tuple7.put("name", "boni");
         tuple7.put("gpa", 3.2);
+        tuple7.put("semester",7);
 
         Hashtable<String, Object> tuple8 = new Hashtable<>();
         tuple8.put("age", 8);
         tuple8.put("name", "nada");
         tuple8.put("gpa", 2.5);
+        tuple8.put("semester",8);
+
+        Hashtable<String, Object> duplicate8 = new Hashtable<>();
+        duplicate8.put("age", 20);
+        duplicate8.put("name", "nada");
+        duplicate8.put("gpa", 2.5);
+        duplicate8.put("semester",8);
 
         Hashtable<String, Object> tuple9 = new Hashtable<>();
         tuple9.put("age", 9);
         tuple9.put("name", "Haboosh");
         tuple9.put("gpa", 3.4);
+        tuple9.put("semester",9);
 
         Hashtable<String, Object> tuple10 = new Hashtable<>();
         tuple10.put("age", 10);
         tuple10.put("name", "ashry");
         tuple10.put("gpa", 0.9);
+        tuple10.put("semester",10);
 
         Hashtable<String, Object> tuple11 = new Hashtable<>();
         tuple11.put("age", 11);
@@ -973,20 +1000,23 @@ public class DBApp {
         htblColNameType.put("age", "java.lang.Integer");
         htblColNameType.put("name", "java.lang.String");
         htblColNameType.put("gpa", "java.lang.Double");
+        htblColNameType.put("semester","java.lang.Integer");
 
         Hashtable<String, String> htblColNameMin = new Hashtable<>();
         htblColNameMin.put("age", "1");
         htblColNameMin.put("name", "A");
         htblColNameMin.put("gpa", "0.7");
+        htblColNameMin.put("semester","1");
 
         Hashtable<String, String> htblColNameMax = new Hashtable<>();
         htblColNameMax.put("age", "40");
         htblColNameMax.put("name", "zzzzzzz");
         htblColNameMax.put("gpa", "4.0");
+        htblColNameMax.put("semester","10");
         DBApp dbApp = new DBApp();
         dbApp.init();
 
-//      dbApp.createTable("Students", "age", htblColNameType, htblColNameMin, htblColNameMax);
+//        dbApp.createTable("Students", "age", htblColNameType, htblColNameMin, htblColNameMax);
 //      dbApp.insertIntoTable("Students", tuple0);
 //      dbApp.insertIntoTable("Students", tuple2);
 //      dbApp.insertIntoTable("Students", tuple6);
@@ -995,12 +1025,13 @@ public class DBApp {
 //      dbApp.insertIntoTable("Students", tuple1);
 //      dbApp.insertIntoTable("Students", tuple3);
 //      dbApp.insertIntoTable("Students", tuple5);
-//        dbApp.insertIntoTable("Students", tuple4);
+//      dbApp.insertIntoTable("Students", tuple4);
 //      dbApp.insertIntoTable("Students", tuple9);
-//      dbApp.insertIntoTable("Students", tuple10);
+      dbApp.insertIntoTable("Students", tuple10);
 //
 //      dbApp.insertIntoTable("Students", tuple11);
 //      dbApp.insertIntoTable("Students", tuple12);
+//        dbApp.insertIntoTable("Students", duplicate8);
 
 
 //        Hashtable<String, Object> updateHtbl = new Hashtable<>();
@@ -1011,7 +1042,7 @@ public class DBApp {
         Hashtable<String, Object> deletingCriteria0 = new Hashtable<>();
         Hashtable<String, Object> deletingCriteria1 = new Hashtable<>();
         Hashtable<String, Object> deletingCriteria2 = new Hashtable<>();
-//         deletingCriteria0.put( "age", 2);
+       deletingCriteria0.put( "age", 8);
 //       deletingCriteria1.put("gpa", 2.3);
 //       deletingCriteria2.put( "name", "sara");
 
@@ -1026,27 +1057,27 @@ public class DBApp {
         SQLTerm[] sqlTerms = {sqlTerm, sqlTerm1, sqlTerm2};
         String[] strarrOperators = {"AND", "AND"};
 
-        Iterator rs = dbApp.selectFromTable(sqlTerms, strarrOperators);
-        System.out.println(rs.next());
-        System.out.println(rs.next());
-        System.out.println(rs.next());
+//        Iterator rs = dbApp.selectFromTable(sqlTerms, strarrOperators);
+//        System.out.println(rs.next());
+//        System.out.println(rs.next());
+//        System.out.println(rs.next());
 //        System.out.println();
 
         Table table = Table.deserialize("Students");
-//        dbApp.createIndex("Students", new String[]{"age", "name", "gpa"});
+//        dbApp.createIndex("Students", new String[]{"semester", "name", "gpa"});
 //
-//        Index index3 = Index.deserialize(table.getName(), "agenamegpaIndex");
-//        index3.octree.printTree();
+        Index index3 = Index.deserialize(table.getName(), "semesternamegpaIndex");
+        index3.octree.printTree();
 //        System.out.println(index3);
 //        System.out.println(table.getHtblIndexName());
-
-//        for (int id : table.getHtblPageIdMinMax().keySet()) {
-//            Page p = Page.deserialize(table.getName(), id);
-//            System.out.println("PAGE " + id);
-//            System.out.println(p.getTuples());
-//            System.out.println("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
-//            p.serialize();
-//        }
+        System.out.println();
+        for (int id : table.getHtblPageIdMinMax().keySet()) {
+            Page p = Page.deserialize(table.getName(), id);
+            System.out.println("PAGE " + id);
+            System.out.println(p.getTuples());
+            System.out.println("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
+            p.serialize();
+        }
 
 
     }

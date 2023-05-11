@@ -117,5 +117,17 @@ public class Index implements Serializable {
         return references;
     }
 
+    public void updateReference(Hashtable<String,Object> tuple, int old,int newId){
+        Object x = tuple.get(columns[0]);
+        Object y = tuple.get(columns[1]);
+        Object z = tuple.get(columns[2]);
+        Vector<Point> list = octree.searchPoint(x,y,z);
+        Point point = list.get(0);
+        for(int i=0;i<point.pageReference.size();i++)
+            if(old==point.pageReference.get(i)){
+                point.pageReference.set(i,newId);
+                return;
+            }
+    }
 }
 

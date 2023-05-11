@@ -407,7 +407,7 @@ class Point implements Serializable {
     }
 
     public String toString() {
-        return "(" + x + "," + y + "," + z + ")";
+        return "Reference:"+pageReference+" "+"(" + x + "," + y + "," + z + ")";
     }
 }
 
