@@ -146,12 +146,14 @@ public class Index implements Serializable {
         Object y = tuple.get(columns[1]);
         Object z = tuple.get(columns[2]);
         Vector<Point> list = octree.searchPoint(x,y,z);
-        Point point = list.get(0);
-        for(int i=0;i<point.pageReference.size();i++)
-            if(old==point.pageReference.get(i)){
-                point.pageReference.set(i,newId);
-                return;
-            }
+        System.out.println(list);
+        for(Point point : list) {
+            for (int i = 0; i < point.pageReference.size(); i++)
+                if (old == point.pageReference.get(i)) {
+                    point.pageReference.set(i, newId);
+                    return;
+                }
+        }
     }
     public void updatePoint(Hashtable<String,Object> updates,Hashtable<String,Object> tuple,int id){
         Object oldX = tuple.get(columns[0]);
@@ -171,6 +173,7 @@ public class Index implements Serializable {
             Vector<Hashtable<String,Object>> tuples = info.get(id);
 
             for(Hashtable<String, Object> tuple : tuples) {
+
                Object x = tuple.get(columns[0]);
                Object y = tuple.get(columns[1]);
                Object z = tuple.get(columns[2]);

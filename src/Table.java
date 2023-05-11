@@ -250,5 +250,9 @@ public class Table implements Serializable {
         this.getHtblPageIdMinMax().put(page.getId(), newPair);
     }
 
+    public boolean isEmpty(){
+        return this.htblPageIdMinMax.isEmpty();
+    }
+
 
 }
