@@ -18,7 +18,7 @@ public class DBApp {
     //    public static final String CONFIG_PATH = "D:\\db-engine\\src\\main\\resources\\DBApp.config";
     public static final String CONFIG_PATH = "./src/main/resources/DBApp.config";
 
-    public DBApp(){
+    public DBApp() {
 
     }
 
@@ -116,7 +116,7 @@ public class DBApp {
         Table table = Table.deserialize(strTableName);
 
         String name = strarrColName[0] + strarrColName[1] + strarrColName[2] + "Index";
-        for(int i=0;i<colNamesArray.length;i++)
+        for (int i = 0; i < colNamesArray.length; i++)
             System.out.println(colNamesArray[i]);
         Index index = new Index(strTableName, name, colNamesArray, octree);
 
@@ -373,13 +373,14 @@ public class DBApp {
         br.close();
         table.serialize();
     }
-    public void updateIndexReference(Hashtable<String, Object> tuple, int oldID,int newID,Table table) throws IOException, ClassNotFoundException {
-        if(newID==-1)
-            newID= table.getMaxIDsoFar() + 1;
+
+    public void updateIndexReference(Hashtable<String, Object> tuple, int oldID, int newID, Table table) throws IOException, ClassNotFoundException {
+        if (newID == -1)
+            newID = table.getMaxIDsoFar() + 1;
 
         for (String idxName : table.getHtblIndexNameColumn().keySet()) {
             Index index = Index.deserialize(table.getName(), idxName);
-            index.updateReference(tuple, oldID,newID);
+            index.updateReference(tuple, oldID, newID);
             index.serialize();
         }
     }
@@ -403,7 +404,7 @@ public class DBApp {
             int pageId = table.getNextID(page);
             table.setMinMax(page);
             page.serialize();
-            updateIndexReference(lastTuple,id,pageId,table);
+            updateIndexReference(lastTuple, id, pageId, table);
             insertAndShift(lastTuple, pageId, table);
         } else {
             table.setMinMax(page);
@@ -445,26 +446,52 @@ public class DBApp {
             if (hasCK) {
                 //binary search to locate the page
                 Comparable ckValue = (Comparable) htblColNameValue.get(table.getClusteringKey());
-                try {
-                    Page locatedPage = table.getPageToModify(ckValue);
+//                try {
+                Page locatedPage = table.getPageToModify(ckValue);
 
 
-                    int tupleIndex = locatedPage.binarySearchInPage(table.getClusteringKey(), ((Comparable) ckValue));
-                    if (tupleIndex == -1)
-                        return;
+                int tupleIndex = locatedPage.binarySearchInPage(table.getClusteringKey(), ((Comparable) ckValue));
+                if (tupleIndex == -1)
+                    return;
 
-                    Hashtable<String, Object> tuple = locatedPage.getTuples().get(tupleIndex);
+                Hashtable<String, Object> tuple = locatedPage.getTuples().get(tupleIndex);
 
-                    if (!isMatch(htblColNameValue, tuple))
-                        return;
-                    locatedPage.getTuples().remove(tuple);
-                    table.updatePageDelete(locatedPage);
-                } catch (DBAppException db) {
-
-                }
+                if (!isMatch(htblColNameValue, tuple))
+                    return;
+                locatedPage.getTuples().remove(tuple);
+                table.updatePageDelete(locatedPage);
+//                } catch (DBAppException db) {
+//
+//                }
 
             } else {
-                Vector<Integer> ids = new Vector<Integer>(table.getHtblPageIdMinMax().keySet());
+                Hashtable<String, Vector<String>> htblIdxNameCol = table.getHtblIndexNameColumn();
+
+                //USING INDEX
+                String indexFound = null;
+                for (String idxName : htblIdxNameCol.keySet()) {
+                    int c = 0;
+                    Vector<String> cols = htblIdxNameCol.get(idxName);
+
+                    for (String column : htblColNameValue.keySet())
+                        if (cols.contains(column))
+                            c++;
+
+                    if (c == 3) {
+                        indexFound = idxName;
+                        break;
+                    }
+                }
+
+                Vector<Integer> ids= null;
+                if (indexFound != null) {
+                    Index index = Index.deserialize(strTableName, indexFound);
+                    ids = index.searchDelete(htblColNameValue);
+                    index.serialize();
+
+                } else
+                    ids = new Vector<Integer>(table.getHtblPageIdMinMax().keySet());
+                Hashtable<Integer,Vector<Hashtable<String,Object>>> htblIdTuples  =  new Hashtable<>();
                 for (Integer id : ids) {
                     Page currPage = Page.deserialize(table.getName(), id);
                     Vector<Hashtable<String, Object>> tmp = new Vector<>();
@@ -473,16 +500,30 @@ public class DBApp {
                         if (isMatch(htblColNameValue, tuple))
                             tmp.add(tuple);
 
-
+                    htblIdTuples.put(id,tmp);
                     currPage.getTuples().removeAll(tmp);
                     table.updatePageDelete(currPage);
                 }
+                for(String idxName : table.getHtblIndexNameColumn().keySet()){
+                    Index index = Index.deserialize(strTableName,idxName);
+                    index.deletePoints(htblIdTuples);
+                    index.serialize();
+                }
+
             }
 
             table.serialize();
         } catch (Exception e) {
             e.printStackTrace();
             throw new DBAppException(e.getMessage());
+        }
+    }
+
+    public static void updateIndex(Table table , Hashtable<Integer,Vector<Hashtable<String,Object>>> htblIdTuples){
+        for(String idxName : table.getHtblIndexNameColumn().keySet()){
+            Index index = Index.deserialize(tab,idxName);
+            index.deletePoints(htblIdTuples);
+            index.serialize();
         }
     }
 
@@ -559,7 +600,7 @@ public class DBApp {
             Hashtable<String, Object> tupleToUpdate = locatedPage.getTuples().get(tupleIndex);
             for (String idxName : table.getHtblIndexNameColumn().keySet()) {
                 Index index = Index.deserialize(table.getName(), idxName);
-                index.updatePoint(htblColNameValue,tupleToUpdate,locatedPageID);
+                index.updatePoint(htblColNameValue, tupleToUpdate, locatedPageID);
                 index.serialize();
             }
             tupleToUpdate.putAll(htblColNameValue);
@@ -872,9 +913,8 @@ public class DBApp {
 
         if (!indexFound.equals("")) {
             //INDEX BASED
-            System.out.println("I am in index based");
             Index idx = Index.deserialize(tableName, indexFound);
-            Vector<Integer> references = idx.search(termsFound);
+            Vector<Integer> references = idx.searchSelect(termsFound);
 
             for (int ref : references) {
                 Page p = Page.deserialize(tableName, ref);
@@ -888,7 +928,6 @@ public class DBApp {
             idx.serialize();
         } else {
             //LINEAR SCAN TABLE
-            System.out.println("I am in linear scanning");
             for (int id : table.getHtblPageIdMinMax().keySet()) {
                 Page page = Page.deserialize(tableName, id);
                 for (Hashtable<String, Object> tuple : page.getTuples()) {
@@ -917,13 +956,13 @@ public class DBApp {
         tuple1.put("age", 1);
         tuple1.put("name", "Kord");
         tuple1.put("gpa", 1.6);
-        tuple1.put("semester",2);
+        tuple1.put("semester", 2);
 
         Hashtable<String, Object> tuple2 = new Hashtable<>();
         tuple2.put("age", 2);
         tuple2.put("name", "Kord");
         tuple2.put("gpa", 1.6);
-        tuple2.put("semester",2);
+        tuple2.put("semester", 2);
 
 
 //        SQLTerm[] sqlTerms = {sqlTerm, sqlTerm1};
@@ -939,55 +978,55 @@ public class DBApp {
         tuple3.put("age", 3);
         tuple3.put("name", "Ahmed");
         tuple3.put("gpa", 0.9);
-        tuple3.put("semester",3);
+        tuple3.put("semester", 3);
 
         Hashtable<String, Object> tuple4 = new Hashtable<>();
         tuple4.put("age", 4);
         tuple4.put("name", "Malak");
         tuple4.put("gpa", 2.3);
-        tuple4.put("semester",4);
+        tuple4.put("semester", 4);
 
         Hashtable<String, Object> tuple5 = new Hashtable<>();
         tuple5.put("age", 5);
         tuple5.put("name", "Menna");
         tuple5.put("gpa", 0.8);
-        tuple5.put("semester",5);
+        tuple5.put("semester", 5);
 
         Hashtable<String, Object> tuple6 = new Hashtable<>();
         tuple6.put("age", 6);
         tuple6.put("name", "Lobna");
         tuple6.put("gpa", 1.4);
-        tuple6.put("semester",6);
+        tuple6.put("semester", 6);
 
         Hashtable<String, Object> tuple7 = new Hashtable<>();
         tuple7.put("age", 7);
         tuple7.put("name", "boni");
         tuple7.put("gpa", 3.2);
-        tuple7.put("semester",7);
+        tuple7.put("semester", 7);
 
         Hashtable<String, Object> tuple8 = new Hashtable<>();
         tuple8.put("age", 8);
         tuple8.put("name", "nada");
         tuple8.put("gpa", 2.5);
-        tuple8.put("semester",8);
+        tuple8.put("semester", 8);
 
         Hashtable<String, Object> duplicate8 = new Hashtable<>();
         duplicate8.put("age", 20);
         duplicate8.put("name", "nada");
         duplicate8.put("gpa", 2.5);
-        duplicate8.put("semester",8);
+        duplicate8.put("semester", 8);
 
         Hashtable<String, Object> tuple9 = new Hashtable<>();
         tuple9.put("age", 9);
         tuple9.put("name", "Haboosh");
         tuple9.put("gpa", 3.4);
-        tuple9.put("semester",9);
+        tuple9.put("semester", 9);
 
         Hashtable<String, Object> tuple10 = new Hashtable<>();
         tuple10.put("age", 10);
         tuple10.put("name", "ashry");
         tuple10.put("gpa", 0.9);
-        tuple10.put("semester",10);
+        tuple10.put("semester", 10);
 
         Hashtable<String, Object> tuple11 = new Hashtable<>();
         tuple11.put("age", 11);
@@ -1004,19 +1043,19 @@ public class DBApp {
         htblColNameType.put("age", "java.lang.Integer");
         htblColNameType.put("name", "java.lang.String");
         htblColNameType.put("gpa", "java.lang.Double");
-        htblColNameType.put("semester","java.lang.Integer");
+        htblColNameType.put("semester", "java.lang.Integer");
 
         Hashtable<String, String> htblColNameMin = new Hashtable<>();
         htblColNameMin.put("age", "1");
         htblColNameMin.put("name", "A");
         htblColNameMin.put("gpa", "0.7");
-        htblColNameMin.put("semester","1");
+        htblColNameMin.put("semester", "1");
 
         Hashtable<String, String> htblColNameMax = new Hashtable<>();
         htblColNameMax.put("age", "40");
         htblColNameMax.put("name", "zzzzzzz");
         htblColNameMax.put("gpa", "4.0");
-        htblColNameMax.put("semester","10");
+        htblColNameMax.put("semester", "10");
         DBApp dbApp = new DBApp();
         dbApp.init();
 
@@ -1036,14 +1075,14 @@ public class DBApp {
 //      dbApp.insertIntoTable("Students", duplicate8);
 
 
-        Hashtable<String, Object> updateHtbl = new Hashtable<>();
-        updateHtbl.put("gpa", 1.0);
-        dbApp.updateTable("Students", "7", updateHtbl);
+//        Hashtable<String, Object> updateHtbl = new Hashtable<>();
+//        updateHtbl.put("gpa", 1.0);
+//        dbApp.updateTable("Students", "8", updateHtbl);
 
-         Hashtable<String, Object> deletingCriteria0 = new Hashtable<>();
-         Hashtable<String, Object> deletingCriteria1 = new Hashtable<>();
-         Hashtable<String, Object> deletingCriteria2 = new Hashtable<>();
-         deletingCriteria0.put("age", 8);
+        Hashtable<String, Object> deletingCriteria0 = new Hashtable<>();
+        Hashtable<String, Object> deletingCriteria1 = new Hashtable<>();
+        Hashtable<String, Object> deletingCriteria2 = new Hashtable<>();
+        deletingCriteria0.put("age", 8);
 //       deletingCriteria1.put("gpa", 2.3);
 //       deletingCriteria2.put( "name", "sara");
 
@@ -1064,14 +1103,14 @@ public class DBApp {
 //        System.out.println(rs.next());
 //        System.out.println();
 
-         Table table = Table.deserialize("Students");
+        Table table = Table.deserialize("Students");
 //        dbApp.createIndex("Students", new String[]{"semester", "name", "gpa"});
 
-         Index index3 = Index.deserialize(table.getName(), "semesternamegpaIndex");
-         index3.octree.printTree();
+        Index index3 = Index.deserialize(table.getName(), "semesternamegpaIndex");
+        index3.octree.printTree();
 //        System.out.println(index3);
 //        System.out.println(table.getHtblIndexName());
-         System.out.println();
+        System.out.println();
 //        for (int id : table.getHtblPageIdMinMax().keySet()) {
 //            Page p = Page.deserialize(table.getName(), id);
 //            System.out.println("PAGE " + id);

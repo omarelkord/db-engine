@@ -87,9 +87,8 @@ public class Index implements Serializable {
         return index;
     }
 
-    public Vector<Integer> search(Vector<SQLTerm> SQLTerms) {
+    public Vector<Integer> searchSelect(Vector<SQLTerm> SQLTerms) {
 
-        System.out.println("I am in index class");
 
         Vector<Object> objValues = new Vector<>();
 
@@ -117,6 +116,31 @@ public class Index implements Serializable {
         return references;
     }
 
+    public Vector<Integer> searchDelete(Hashtable<String,Object> criteria){
+
+        Object x = null;
+        Object y = null;
+        Object z = null;
+
+        for (String col : criteria.keySet()) {
+            if (col.equals(columns[0]))
+                x = criteria.get(col);
+            if (col.equals(columns[1]))
+                y = criteria.get(col);
+            if (col.equals(columns[2]))
+                z = criteria.get(col);
+        }
+
+
+        Vector<Point> foundPoints = octree.searchPoint(x, y, z);
+        Vector<Integer> references = new Vector<>();
+
+        for (Point point : foundPoints)
+            references.addAll(point.pageReference);
+
+        return references;
+    }
+
     public void updateReference(Hashtable<String,Object> tuple, int old,int newId){
         Object x = tuple.get(columns[0]);
         Object y = tuple.get(columns[1]);
@@ -139,6 +163,11 @@ public class Index implements Serializable {
         Point oldPoint = new Point(oldX, oldY,oldZ,id);
         Point newPoint = new Point(newX, newY,newZ,id);
         octree.updateTree(oldPoint,newPoint);
+    }
+
+    public void deletePoints(Hashtable<Integer,Vector<Hashtable<String,Object>>> info){
+
+
     }
 }
 
