@@ -129,5 +129,16 @@ public class Index implements Serializable {
                 return;
             }
     }
+    public void updatePoint(Hashtable<String,Object> updates,Hashtable<String,Object> tuple,int id){
+        Object oldX = tuple.get(columns[0]);
+        Object oldY = tuple.get(columns[1]);
+        Object oldZ = tuple.get(columns[2]);
+        Object newX = (updates.get(columns[0])==null)?(oldX):(updates.get(columns[0]));
+        Object newY = (updates.get(columns[1])==null)?(oldY):(updates.get(columns[1]));
+        Object newZ = (updates.get(columns[2])==null)?(oldZ):(updates.get(columns[2]));
+        Point oldPoint = new Point(oldX, oldY,oldZ,id);
+        Point newPoint = new Point(newX, newY,newZ,id);
+        octree.updateTree(oldPoint,newPoint);
+    }
 }
 

@@ -550,15 +550,19 @@ public class DBApp {
             Comparable ckValue = (Comparable) parse(strClusteringKeyValue, table.getCkType());
 
             Page locatedPage = table.getPageToModify(ckValue);
-
+            int locatedPageID = table.binarySearchInTable(((Comparable) ckValue));
             int tupleIndex = locatedPage.binarySearchInPage(table.getClusteringKey(), ((Comparable) ckValue));
 
             if (tupleIndex == -1)
                 throw new DBAppException("Tuple does not exist");
 
             Hashtable<String, Object> tupleToUpdate = locatedPage.getTuples().get(tupleIndex);
+            for (String idxName : table.getHtblIndexNameColumn().keySet()) {
+                Index index = Index.deserialize(table.getName(), idxName);
+                index.updatePoint(htblColNameValue,tupleToUpdate,locatedPageID);
+                index.serialize();
+            }
             tupleToUpdate.putAll(htblColNameValue);
-
             table.setMinMax(locatedPage);
             locatedPage.serialize();
             table.serialize();
@@ -1016,8 +1020,7 @@ public class DBApp {
         DBApp dbApp = new DBApp();
         dbApp.init();
 
-//        dbApp.createTable("Students", "age", htblColNameType, htblColNameMin, htblColNameMax);
-//      dbApp.insertIntoTable("Students", tuple0);
+//      dbApp.createTable("Students", "age", htblColNameType, htblColNameMin, htblColNameMax);
 //      dbApp.insertIntoTable("Students", tuple2);
 //      dbApp.insertIntoTable("Students", tuple6);
 //      dbApp.insertIntoTable("Students", tuple7);
@@ -1027,22 +1030,20 @@ public class DBApp {
 //      dbApp.insertIntoTable("Students", tuple5);
 //      dbApp.insertIntoTable("Students", tuple4);
 //      dbApp.insertIntoTable("Students", tuple9);
-      dbApp.insertIntoTable("Students", tuple10);
-//
+//      dbApp.insertIntoTable("Students", tuple10);
 //      dbApp.insertIntoTable("Students", tuple11);
 //      dbApp.insertIntoTable("Students", tuple12);
-//        dbApp.insertIntoTable("Students", duplicate8);
+//      dbApp.insertIntoTable("Students", duplicate8);
 
 
-//        Hashtable<String, Object> updateHtbl = new Hashtable<>();
-//        updateHtbl.put("gpa", 3.0);
-//        updateHtbl.put("name", "bonii");
-//       dbApp.updateTable("Students", "7", updateHtbl);
+        Hashtable<String, Object> updateHtbl = new Hashtable<>();
+        updateHtbl.put("gpa", 1.0);
+        dbApp.updateTable("Students", "7", updateHtbl);
 
-        Hashtable<String, Object> deletingCriteria0 = new Hashtable<>();
-        Hashtable<String, Object> deletingCriteria1 = new Hashtable<>();
-        Hashtable<String, Object> deletingCriteria2 = new Hashtable<>();
-       deletingCriteria0.put( "age", 8);
+         Hashtable<String, Object> deletingCriteria0 = new Hashtable<>();
+         Hashtable<String, Object> deletingCriteria1 = new Hashtable<>();
+         Hashtable<String, Object> deletingCriteria2 = new Hashtable<>();
+         deletingCriteria0.put("age", 8);
 //       deletingCriteria1.put("gpa", 2.3);
 //       deletingCriteria2.put( "name", "sara");
 
@@ -1063,21 +1064,21 @@ public class DBApp {
 //        System.out.println(rs.next());
 //        System.out.println();
 
-        Table table = Table.deserialize("Students");
+         Table table = Table.deserialize("Students");
 //        dbApp.createIndex("Students", new String[]{"semester", "name", "gpa"});
-//
-        Index index3 = Index.deserialize(table.getName(), "semesternamegpaIndex");
-        index3.octree.printTree();
+
+         Index index3 = Index.deserialize(table.getName(), "semesternamegpaIndex");
+         index3.octree.printTree();
 //        System.out.println(index3);
 //        System.out.println(table.getHtblIndexName());
-        System.out.println();
-        for (int id : table.getHtblPageIdMinMax().keySet()) {
-            Page p = Page.deserialize(table.getName(), id);
-            System.out.println("PAGE " + id);
-            System.out.println(p.getTuples());
-            System.out.println("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
-            p.serialize();
-        }
+         System.out.println();
+//        for (int id : table.getHtblPageIdMinMax().keySet()) {
+//            Page p = Page.deserialize(table.getName(), id);
+//            System.out.println("PAGE " + id);
+//            System.out.println(p.getTuples());
+//            System.out.println("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
+//            p.serialize();
+//        }
 
 
     }

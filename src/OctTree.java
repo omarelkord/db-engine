@@ -163,11 +163,17 @@ public class OctTree implements Serializable {
     }
 
     public boolean updateTree(Point old, Point curr) {
-        deleteInTree(old.x, old.y, old.z);
+        deleteInTree(old.x, old.y, old.z,curr.pageReference.get(0));
         return insertInTree(curr);
     }
 
-    public void deleteInTree(Object x, Object y, Object z) {
+    public void deleteInTree(Object x, Object y, Object z,int id) {
+        if(id !=-1){
+            Point p = new Point(x,y,z,id);
+            removeDistinctPoint(p);
+            return;
+        }
+
         Object front, back, right, left, bottom, top = null;
         if (x == null) {
             front = this.boundary.front;
@@ -189,10 +195,40 @@ public class OctTree implements Serializable {
 
         Cube bound = new Cube(front, back, left, right, top, bottom);
         //System.out.print(bound.front+" "+bound.back);
-        deleteWithboundary
-                (bound);
+        deleteWithboundary(bound);
     }
 
+    public void removeDistinctPoint(Point point){
+        if (!boundary.isInRange((Comparable) point.x, (Comparable) this.boundary.front, (Comparable) this.boundary.back))
+            return;
+        if (!boundary.isInRange((Comparable) point.y, (Comparable) this.boundary.right, (Comparable) this.boundary.left))
+            return;
+        if (!boundary.isInRange((Comparable) point.z, (Comparable) this.boundary.top, (Comparable) this.boundary.bottom))
+            return;
+        if(!divided){
+            Vector<Point> temp = new Vector<>();
+            for(int i=0;i< items.size();i++){
+                if(equalPoints(items.get(i),point)){
+                    for(int j=0;j<items.get(i).pageReference.size();){
+                     if((items.get(i).pageReference.get(j)).equals(point.pageReference.get(0))){
+                         items.get(i).pageReference.remove(j);
+                         break;
+                     }
+                     else j++;
+                    }
+                }
+                System.out.println(items.get(i).pageReference.size());
+                if( !items.get(i).pageReference.isEmpty() )
+                   temp.add(items.get(i));
+            }
+            items=temp;
+        }
+        else
+            for(OctTree child: children)
+                child.removeDistinctPoint(point);
+
+
+    }
     public void deleteWithboundary(Cube bound) {
         if (!boundary.intersects(bound)) {
             return;
@@ -200,9 +236,9 @@ public class OctTree implements Serializable {
         if (!divided) {
 
             for (int i = 0; i < items.size(); ) {
-                if (this.boundary.checkPointsInboundary
-                        (items.get(i), bound))
+                if (this.boundary.checkPointsInboundary(items.get(i), bound))
                     this.items.remove(items.get(i));
+
 
                 else
                     i++;
