@@ -1,0 +1,4 @@
+Students, gpa, java.lang.Double, False, semesternamegpaIndex, Octree, 0.7, 4.0
+Students,age,java.lang.Integer,True,null,null,1,40
+Students, name, java.lang.String, False, semesternamegpaIndex, Octree, A, zzzzzzz
+Students, semester, java.lang.Integer, False, semesternamegpaIndex, Octree, 1, 10

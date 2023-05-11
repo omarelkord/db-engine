@@ -11,9 +11,9 @@ public class Table implements Serializable {
     private String ckType;
     private int numOfCols;
     private Vector<String> columnNames;
+    private Hashtable<String, Vector<String>> htblIndexNameColumn;
 
-
-//    public static final String TABLE_DIRECTORY = "D:\\db-engine\\src\\main\\resources\\data\\";
+    //    public static final String TABLE_DIRECTORY = "D:\\db-engine\\src\\main\\resources\\data\\";
     public static final String TABLE_DIRECTORY = "./src/main/resources/data/";
 
     private int maxIDsoFar;
@@ -22,7 +22,12 @@ public class Table implements Serializable {
         this.name = strTableName;
         this.clusteringKey = strClusteringKeyColumn;
         htblPageIdMinMax = new Hashtable<>();
+        htblIndexNameColumn = new Hashtable<>();
         maxIDsoFar = -1;
+    }
+
+    public Hashtable<String, Vector<String>> getHtblIndexNameColumn() {
+        return htblIndexNameColumn;
     }
 
     public int getNumOfCols() {
@@ -98,8 +103,12 @@ public class Table implements Serializable {
         return locatedPage;
     }
 
+    public void setClusteringKey(String clusteringKey) {
+        this.clusteringKey = clusteringKey;
+    }
+
     public Integer getPageIDToInsert(Comparable value){
-        Vector<Integer> sortedID = new Vector<Integer>(this.htblPageIdMinMax.keySet());
+        Vector<Integer> sortedID = new Vector<>(this.htblPageIdMinMax.keySet());
         Collections.sort(sortedID);
 
         int left = 0;
@@ -179,8 +188,7 @@ public class Table implements Serializable {
         int locatedPageID = this.binarySearchInTable(((Comparable) ckValue));
 
         if (locatedPageID == -1)
-            throw new DBAppException("This tuple does not exist");
-
+            return null;
         return Page.deserialize(this.getName(), locatedPageID);
     }
 
