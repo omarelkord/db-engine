@@ -650,7 +650,7 @@ public class DBApp {
         DBApp dbApp = new DBApp();
         dbApp.init();
 
-        //dbApp.createTable("Students", "age", htblColNameType, htblColNameMin, htblColNameMax);
+        dbApp.createTable("Students", "age", htblColNameType, htblColNameMin, htblColNameMax);
         // dbApp.insertIntoTable("Students", tuple0);
 //      dbApp.insertIntoTable("Students", tuple2);
 //        dbApp.insertIntoTable("Students", tuple6);
@@ -664,7 +664,7 @@ public class DBApp {
 //        dbApp.insertIntoTable("Students", tuple10);
 //
 //        dbApp.insertIntoTable("Students", tuple11);
-         dbApp.insertIntoTable("Students", tuple12);
+        // dbApp.insertIntoTable("Students", tuple12);
 
 
 
