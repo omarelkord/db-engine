@@ -491,6 +491,7 @@ public class DBApp {
 
                 } else
                     ids = new Vector<Integer>(table.getHtblPageIdMinMax().keySet());
+
                 Hashtable<Integer,Vector<Hashtable<String,Object>>> htblIdTuples  =  new Hashtable<>();
                 for (Integer id : ids) {
                     Page currPage = Page.deserialize(table.getName(), id);
@@ -504,11 +505,8 @@ public class DBApp {
                     currPage.getTuples().removeAll(tmp);
                     table.updatePageDelete(currPage);
                 }
-                for(String idxName : table.getHtblIndexNameColumn().keySet()){
-                    Index index = Index.deserialize(strTableName,idxName);
-                    index.deletePoints(htblIdTuples);
-                    index.serialize();
-                }
+
+               updateIndices(table, htblIdTuples);
 
             }
 
@@ -519,9 +517,10 @@ public class DBApp {
         }
     }
 
-    public static void updateIndex(Table table , Hashtable<Integer,Vector<Hashtable<String,Object>>> htblIdTuples){
+    public static void updateIndices(Table table , Hashtable<Integer,Vector<Hashtable<String,Object>>> htblIdTuples) throws Exception{
+
         for(String idxName : table.getHtblIndexNameColumn().keySet()){
-            Index index = Index.deserialize(tab,idxName);
+            Index index = Index.deserialize(table.getName(),idxName);
             index.deletePoints(htblIdTuples);
             index.serialize();
         }
