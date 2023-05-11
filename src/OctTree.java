@@ -21,7 +21,7 @@ public class OctTree implements Serializable {
 
     public Vector<Point> searchPoint(Object x, Object y, Object z) {
 
-        System.out.println("I am in searchPoint in Octree");
+        //System.out.println("I am in searchPoint in Octree");
 
         Object front, back, right, left, bottom, top = null;
         if (x == null) {
