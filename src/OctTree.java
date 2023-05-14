@@ -69,6 +69,92 @@ public class OctTree implements Serializable {
 
         return foundPoints;
     }
+    public Vector<Point> rangeSelect(Object maxX , Object minX,Object maxY , Object minY,Object maxZ , Object minZ, boolean[] include  ){
+        Cube bound = new Cube(maxX,minX,minY,maxY,maxZ,minZ);
+        return searchInRange(bound,include);
+    }
+    public Vector<Point> searchInRange(Cube bound,boolean[] isInclusive){
+        Vector<Point> foundPoints = new Vector<>();
+        if (!boundary.intersects(bound)) {
+            return foundPoints;
+        }
+        if (!divided) {
+            for (Point item : items) {
+              if(checkIsInRange(item,bound,isInclusive))
+                  foundPoints.add(item);
+
+            }
+        } else
+            for (OctTree child : children) {
+
+                foundPoints.addAll(child.searchWithboundary(bound));
+            }
+
+
+        return foundPoints;
+    }
+    private static boolean checkIsInRange(Point item, Cube bound, boolean[] isInclusive){
+
+        if(isInclusive[0]){ //inclusive range for upper x
+            if(((Comparable)bound.front).compareTo(item.x)< 0)
+                return false;
+        }
+        else{ //exclusive range for upper x
+            if(((Comparable)bound.front).compareTo(item.x)<= 0)
+                return false;}
+
+        if(isInclusive[1]){ // inclusive range for x lower bound
+            if(((Comparable)bound.back).compareTo(item.x)> 0)
+                return false;
+        }
+
+        else{
+            if(((Comparable)bound.back).compareTo(item.x)>= 0){ // exclusive range for x lower bound
+            System.out.println("first case is correct");
+            return false;
+            }
+        }
+
+
+        if(isInclusive[2]){ //inclusive range for upper y
+            if(((Comparable)bound.right).compareTo(item.y)< 0)
+                return false;
+        }
+        else {//exclusive range for upper y
+            if(((Comparable)bound.right).compareTo(item.y)<= 0)
+                return false;}
+
+        if(isInclusive[3]){ // inclusive range for y lower bound
+            if(((Comparable)bound.left).compareTo(item.y)> 0)
+                return false;
+        }
+
+            else {
+                if(((Comparable)bound.left).compareTo(item.y)>= 0) // exclusive range for y lower bound
+                return false;
+            }
+
+        if(isInclusive[4]){ //inclusive range for upper z
+            if(((Comparable)bound.top).compareTo(item.z)< 0)
+                return false;
+        }
+        else{ //exclusive range for upper z
+            if(((Comparable)bound.top).compareTo(item.z)<= 0)
+                return false;
+        }
+
+        if(isInclusive[5]) { // inclusive range for z lower bound
+            if (((Comparable) bound.bottom).compareTo(item.z) > 0)
+                return false;
+        }
+            else {
+                if(((Comparable)bound.bottom).compareTo(item.z)>= 0) // exclusive range for z lower bound
+                return false;
+            }
+
+        return true;
+
+            }
 
     public static boolean equalPoints(Point p1, Point p2) {
         boolean cond1 = ((Comparable) p1.x).compareTo(p2.x) == 0;
@@ -226,6 +312,10 @@ public class OctTree implements Serializable {
         else
             for(OctTree child: children)
                 child.removeDistinctPoint(point);
+    }
+
+
+    public void rangeSelect( ){
 
 
     }
@@ -311,8 +401,11 @@ public class OctTree implements Serializable {
         t.insertInTree(point5);
         Point point6 = new Point(30, 30, 30, 0);
         t.insertInTree(point6);
-        System.out.println(t.searchPoint(null, 20, 20));
-        t.printTree();
+        Cube bound = new Cube(5,5,3,20,20,5);
+        boolean[] isInclusive = {true,true,true,true,true,true};
+
+        System.out.println(checkIsInRange(point1,bound,isInclusive));
+
 
     }
 }
