@@ -69,7 +69,7 @@ public class OctTree implements Serializable {
 
         return foundPoints;
     }
-    public Vector<Point> rangeSelect(Object maxX , Object minX,Object maxY , Object minY,Object maxZ , Object minZ, boolean[] include  ){
+    public Vector<Point> rangeSelect(Object maxX , Object minX,Object maxY , Object minY,Object maxZ , Object minZ, boolean[] include){
         Cube bound = new Cube(maxX,minX,minY,maxY,maxZ,minZ);
         return searchInRange(bound,include);
     }

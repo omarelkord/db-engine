@@ -19,6 +19,7 @@ statement: STRING operator VALUE ;
 operator: '=' | '>'| '<'|'>=' | '<=';
 
 INT: [1-9]*;
+DOUBLE :[0-9]+ '.' [0-9]+ ;
 STRING : [a-z]*;
 WS  :   [ \t]+ -> skip ;
 NEWLINE:'\r'? '\n' ;

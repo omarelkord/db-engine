@@ -9,21 +9,28 @@ public class Table implements Serializable {
     private Hashtable<Integer, Pair> htblPageIdMinMax;
     private String clusteringKey;
     private String ckType;
+
     private int numOfCols;
     private Vector<String> columnNames;
     private Hashtable<String, Vector<String>> htblIndexNameColumn;
+    private Hashtable<String, Object> htblColMin;
+    private Hashtable<String, Object> htblColMax;
+
 
     //    public static final String TABLE_DIRECTORY = "D:\\db-engine\\src\\main\\resources\\data\\";
     public static final String TABLE_DIRECTORY = "./src/main/resources/data/";
 
     private int maxIDsoFar;
 
-    public Table(String strTableName, String strClusteringKeyColumn) {
+    public Table(String strTableName, String strClusteringKeyColumn ,  Hashtable<String, Object> htblColNameMin,
+                 Hashtable<String,Object> htblColNameMax) {
         this.name = strTableName;
         this.clusteringKey = strClusteringKeyColumn;
         htblPageIdMinMax = new Hashtable<>();
         htblIndexNameColumn = new Hashtable<>();
         maxIDsoFar = -1;
+        htblColMin = htblColNameMin;
+        htblColMax = htblColNameMax;
     }
 
     public Hashtable<String, Vector<String>> getHtblIndexNameColumn() {
@@ -203,6 +210,13 @@ public class Table implements Serializable {
 
     public Hashtable<Integer, Pair> getHtblPageIdMinMax() {
         return htblPageIdMinMax;
+    }
+
+    public Hashtable<String, Object> getHtblColMin() {
+        return htblColMin;
+    }
+    public Hashtable<String, Object> getHtblColMax() {
+        return htblColMax;
     }
 
     public void setHtblPageIdMinMax(Hashtable<Integer, Pair> htblPageIdMaxMin) {

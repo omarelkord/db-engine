@@ -87,8 +87,7 @@ public class Index implements Serializable {
         return index;
     }
 
-    public Vector<Integer> searchSelect(Vector<SQLTerm> SQLTerms) {
-
+    public Vector<Integer> searchSelect(Vector<SQLTerm> SQLTerms) throws Exception{
 
         Vector<Object> objValues = new Vector<>();
 
@@ -96,25 +95,133 @@ public class Index implements Serializable {
         Object y = null;
         Object z = null;
 
+        Table table = Table.deserialize(tableName);
+
+        Object maxX = table.getHtblColMax().get(columns[0]);
+        Object minX = table.getHtblColMin().get(columns[0]);
+        Object maxY = table.getHtblColMax().get(columns[1]);
+        Object minY = table.getHtblColMin().get(columns[1]);
+        Object maxZ = table.getHtblColMax().get(columns[2]);
+        Object minZ = table.getHtblColMin().get(columns[2]);
+
+        boolean [] include = new boolean[6];
+
         for (SQLTerm term : SQLTerms) {
-            if (term.get_strColumnName().equals(columns[0]))
+            if (term.get_strColumnName().equals(columns[0])){
                 x = term.get_objValue();
-            if (term.get_strColumnName().equals(columns[1]))
+                switch(term.get_strOperator()){
+                    case ">": minX = x;
+                            include[0] = true;
+                            include[1] = false;
+                            break;
+                    case "<": maxX = x;
+                              include[0] = false;
+                              include[1] = true;
+                              break;
+                    case ">=" : minX = x;
+                                include[0] = true;
+                                include[1] = true;
+                                break;
+                    case "<=:": maxX = x;
+                                include[0] = true;
+                                include[1] = true;
+                                break;
+
+                    case "=": minX = x ;
+                              maxX = x;
+                              include[0] = true;
+                              include[1] = true;
+                              break;
+                }
+            }
+
+            if (term.get_strColumnName().equals(columns[1])) {
                 y = term.get_objValue();
-            if (term.get_strColumnName().equals(columns[2]))
-                z = term.get_objValue();
+                switch (term.get_strOperator()) {
+                    case ">":
+                        minY = y;
+                        include[2] = true;
+                        include[3] = false;
+                        break;
+                    case "<":
+                        maxY = y;
+                        include[2] = false;
+                        include[3] = true;
+                        break;
+                    case ">=":
+                        minY = y;
+                        include[2] = true;
+                        include[3] = true;
+                        break;
+                    case "<=:":
+                        maxY = y;
+                        include[2] = true;
+                        include[3] = true;
+                        break;
+
+                    case "=":
+                        minY = y;
+                        maxY = y;
+                        include[2] = true;
+                        include[3] = true;
+                        break;
+                }
+            }
+            if (term.get_strColumnName().equals(columns[2])){
+                 z = term.get_objValue();
+
+                switch(term.get_strOperator()){
+                    case ">": minZ = z;
+                        include[4] = true;
+                        include[5] = false;
+                        break;
+                    case "<": maxZ = z;
+                        include[4] = false;
+                        include[5] = true;
+                        break;
+                    case ">=" : minZ = z;
+                        include[4] = true;
+                        include[5] = true;
+                        break;
+                    case "<=:": maxZ = z;
+                        include[4] = true;
+                        include[5] = true;
+                        break;
+
+                    case "=": minZ = z;
+                        maxZ = z;
+                        include[4] = true;
+                        include[5] = true;
+                        break;
+                }
+
+            }
+
         }
 
+        table.serialize();
 
-        Vector<Point> foundPoints = octree.searchPoint(x, y, z);
+//        Vector<Point> foundPoints = octree.searchPoint(x, y, z);
+        Vector<Point> foundPoints = octree.rangeSelect(maxX, minX , maxY , minY , maxZ ,minZ,include);
         Vector<Integer> references = new Vector<>();
-
+        System.out.println(foundPoints);
         for (Point point : foundPoints) {
             references.addAll(point.pageReference);
         }
 
         return references;
     }
+
+//    public void getMinMax(String strOperator , Object value , Object maxValue , Object minValue) {
+//
+//        switch(strOperator){
+//            case ">": ;
+//            case "<": ;
+//            case ">=":;
+//            case "<=":;
+//            case "=": ;
+//        }
+//    }
 
     public Vector<Integer> searchDelete(Hashtable<String,Object> criteria){
 
