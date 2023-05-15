@@ -105,35 +105,42 @@ public class DBApp {
 
         System.out.println("out of verify");
 
-        Pair pair = modifyCsvForIndex(strTableName, strarrColName);
+//        Pair pair = modifyCsvForIndex(strTableName, strarrColName);
+        Vector<String> colNames = modifyCsvForIndex(strTableName, strarrColName);
 
-        Vector<Pair> info = (Vector<Pair>) pair.getMin();
-        Vector<String> colNames = (Vector<String>) pair.getMax();
+//        Vector<Pair> info = (Vector<Pair>) pair.getMin();
+//        Vector<String> colNames = (Vector<String>) pair.getMax();
         String[] colNamesArray = colNames.toArray(new String[0]);
 
-//        if(info.size()==0)
-//            throw new DBAppException("Index already created");
-//
-        Object minX = info.get(0).getMin();
-        Object maxX = info.get(0).getMax();
+        Table table = Table.deserialize(strTableName);
+//        Object minX = info.get(0).getMin();
+//        Object maxX = info.get(0).getMax();
+
+        Object minX = table.getHtblColMin().get(colNamesArray[0]);
+        Object maxX = table.getHtblColMax().get(colNamesArray[0]);
+
         System.out.print("MIN X = ");
         System.out.println(minX);
 
+//        Object minY = info.get(1).getMin();
+//        Object maxY = info.get(1).getMax();
 
-        Object minY = info.get(1).getMin();
-        Object maxY = info.get(1).getMax();
+        Object minY = table.getHtblColMin().get(colNamesArray[1]);
+        Object maxY = table.getHtblColMax().get(colNamesArray[1]);
         System.out.print("MIN Y = ");
         System.out.println(minY);
 
+//        Object minZ = info.get(2).getMin();
+//        Object maxZ = info.get(2).getMax();
 
-        Object minZ = info.get(2).getMin();
-        Object maxZ = info.get(2).getMax();
+        Object minZ = table.getHtblColMin().get(colNamesArray[2]);
+        Object maxZ = table.getHtblColMax().get(colNamesArray[2]);
 
         Cube boundary = new Cube(maxX, minX, minY, maxY, maxZ, minZ);
         int capacity = Integer.parseInt(readConfig(DBApp.CONFIG_PATH).getProperty("MaximumEntriesinOctreeNode"));
 
         OctTree octree = new OctTree(capacity, boundary);
-        Table table = Table.deserialize(strTableName);
+
 
         String name = strarrColName[0] + strarrColName[1] + strarrColName[2] + "Index";
         for (int i = 0; i < colNamesArray.length; i++)
@@ -197,7 +204,7 @@ public class DBApp {
         table.serialize();
     }
 
-    public Pair modifyCsvForIndex(String strTableName,
+    public Vector<String> modifyCsvForIndex(String strTableName,
                                   String[] strarrColName) throws Exception {
         BufferedReader reader = new BufferedReader(new FileReader(METADATA_PATH));
 
@@ -213,7 +220,7 @@ public class DBApp {
         Vector<String> strVecColName = new Vector<String>();
         Collections.addAll(strVecColName, strarrColName);
         Vector<String> columnName = new Vector<>();
-        Vector<Pair> minMax = new Vector<Pair>();
+//        Vector<Pair> minMax = new Vector<Pair>();
 
         while (line != null) {
             content = line.split(",");
@@ -235,9 +242,9 @@ public class DBApp {
                         indexType + "," + min + "," + max;
                 writer.println(row);
 
-                Pair pair = new Pair(parse(min, colType), parse(max, colType));
+//                Pair pair = new Pair(parse(min, colType), parse(max, colType));
                 columnName.add(colName);
-                minMax.add(pair);
+//                minMax.add(pair);
             }
             line = reader.readLine();
         }
@@ -247,7 +254,7 @@ public class DBApp {
         originalFile.delete();
         tempFile.renameTo(originalFile);
 
-        return new Pair(minMax, columnName);
+        return columnName;
 
     }
 
