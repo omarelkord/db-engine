@@ -486,7 +486,7 @@ public class DBApp {
             if (hasCK) {
                 //binary search to locate the page
                 Comparable ckValue = (Comparable) htblColNameValue.get(table.getClusteringKey());
-//                try {
+
                 Page locatedPage = table.getPageToModify(ckValue);
 
                 int tupleIndex = locatedPage.binarySearchInPage(table.getClusteringKey(), ((Comparable) ckValue));
@@ -508,34 +508,10 @@ public class DBApp {
 
                 locatedPage.getTuples().remove(tuple);
                 table.updatePageDelete(locatedPage);
-//
+
 
             } else {
-                Hashtable<String, Vector<String>> htblIdxNameCol = table.getHtblIndexNameColumn();
-
-                //USING INDEX
-                String indexFound = null;
-                int countSoFar = 0;
-
-                for (String idxName : htblIdxNameCol.keySet()) {
-                    int c = 0;
-                    Vector<String> cols = htblIdxNameCol.get(idxName);
-
-                    for (String column : htblColNameValue.keySet())
-                        if (cols.contains(column))
-                            c++;
-
-                    if (c == 3) {
-                        indexFound = idxName;
-                        break;
-                    }
-                    //Partial query **not tested
-                    if(c > countSoFar){
-                        indexFound = idxName;
-                        countSoFar = c;
-                    }
-                }
-
+               String indexFound = getIndex(table , htblColNameValue);
 
                 Vector<Integer> ids= null;
                 if (indexFound != null) {
@@ -580,6 +556,34 @@ public class DBApp {
         }
     }
 
+    public String getIndex( Table table, Hashtable<String, Object> htblColNameValue){
+
+        Hashtable<String, Vector<String>> htblIdxNameCol = table.getHtblIndexNameColumn();
+
+        //USING INDEX
+        String indexFound = null;
+        int countSoFar = 0;
+
+        for (String idxName : htblIdxNameCol.keySet()) {
+            int c = 0;
+            Vector<String> cols = htblIdxNameCol.get(idxName);
+
+            for (String column : htblColNameValue.keySet())
+                if (cols.contains(column))
+                    c++;
+
+            if (c == 3) {
+                indexFound = idxName;
+                break;
+            }
+            //Partial query
+            if(c > countSoFar){
+                indexFound = idxName;
+                countSoFar = c;
+            }
+        }
+        return indexFound;
+    }
     public static void updateIndices(Table table , Hashtable<Integer,Vector<Hashtable<String,Object>>> htblIdTuples) throws Exception{
         for(String idxName : table.getHtblIndexNameColumn().keySet()){
             Index index = Index.deserialize(table.getName(),idxName);
