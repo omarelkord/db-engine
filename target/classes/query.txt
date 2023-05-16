@@ -1,1 +1,0 @@
-select * from students where age = 3 and name = ahmed and semester = 3
