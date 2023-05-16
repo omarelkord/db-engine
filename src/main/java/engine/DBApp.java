@@ -143,16 +143,8 @@ public class DBApp {
 
         System.out.println("out of verify");
 
-<<<<<<< HEAD:src/main/java/DBApp.java
 
         Vector<String> colNames = modifyCsvForIndex(strTableName, strarrColName);
-=======
-//        engine.Pair pair = modifyCsvForIndex(strTableName, strarrColName);
-        Vector<String> colNames = modifyCsvForIndex(strTableName, strarrColName);
-
-//        Vector<engine.Pair> info = (Vector<engine.Pair>) pair.getMin();
-//        Vector<String> colNames = (Vector<String>) pair.getMax();
->>>>>>> parsing:src/main/java/engine/DBApp.java
         String[] colNamesArray = colNames.toArray(new String[0]);
 
         Table table = Table.deserialize(strTableName);
@@ -1147,7 +1139,6 @@ public class DBApp {
             }
 
             this.insertIntoTable(tableName, tuple);
-        }
 
         return null;
     }
@@ -1215,18 +1206,16 @@ public class DBApp {
         Hashtable<String, Object> tuple1 = new Hashtable<>();
         tuple1.put("id",1);
         tuple1.put("name","Ahmed");
-        tuple1.put("age", 20);
+        tuple1.put("age", 23);
         tuple1.put("gpa", 1.3);
         tuple1.put("dob", new Date(1039315200000L));
 
         Hashtable<String, Object> tuple2 = new Hashtable<>();
-<<<<<<< HEAD:src/main/java/DBApp.java
         tuple2.put("id",2);
         tuple2.put("name","Omar");
         tuple2.put("age", 27);
         tuple2.put("gpa", 3.9);
         tuple2.put("dob", new Date(817324800000L));
-=======
         tuple2.put("age", 2);
         tuple2.put("name", "Kord");
         tuple2.put("gpa", 1.6);
@@ -1240,7 +1229,6 @@ public class DBApp {
 //
 //        System.out.println(boolArr);
 //        System.out.println(compute(boolArr, strarrOperators));
->>>>>>> parsing:src/main/java/engine/DBApp.java
 
 
         Hashtable<String, Object> tuple3 = new Hashtable<>();
@@ -1326,21 +1314,6 @@ public class DBApp {
 
 
 
-<<<<<<< HEAD:src/main/java/DBApp.java
-
-
-//        dbApp.createTable("Students", "id", htblColNameType, htblColNameMin, htblColNameMax);
-//        dbApp.insertIntoTable("Students", tuple0);
-//        dbApp.insertIntoTable("Students", tuple1);
-//        dbApp.insertIntoTable("Students", tuple2);
-//        dbApp.insertIntoTable("Students", tuple3);
-//        dbApp.insertIntoTable("Students", tuple4);
-//        dbApp.insertIntoTable("Students", tuple5);
-//        dbApp.insertIntoTable("Students", tuple6);
-//        dbApp.insertIntoTable("Students", tuple7);
-
-
-
 
 
 
@@ -1352,19 +1325,17 @@ public class DBApp {
         Hashtable<String, Object> deletingCriteria0 = new Hashtable<>();
 
 
-
         deletingCriteria0.put("age", DBAppNull.getInstance());
 //        deletingCriteria0.put("age", 27);
 //        deletingCriteria0.put("gpa",3.9 );
 
-       dbApp.deleteFromTable("Students", deletingCriteria0);
-=======
+//       dbApp.deleteFromTable("Students", deletingCriteria0);
 //        dbApp.createTable("students", "age", htblColNameType, htblColNameMin, htblColNameMax);
-//        dbApp.insertIntoTable("Students", tuple0);
+//        dbApp.insertIntoTable("students", tuple1);
 //        dbApp.insertIntoTable("Students", tuple2);
-//        dbApp.insertIntoTable("Students", tuple6);
+//        dbApp.insertIntoTable("students", tuple6);
 //        dbApp.insertIntoTable("Students", tuple7);
-//        dbApp.insertIntoTable("Students", tuple8);
+//        dbApp.insertIntoTable("students", tuple8);
 //        dbApp.insertIntoTable("Students", tuple1);
 //        dbApp.insertIntoTable("students", tuple3);
 //        dbApp.insertIntoTable("students", tuple5);
@@ -1406,13 +1377,11 @@ public class DBApp {
 //       deletingCriteria1.put( "gpa", 3.0);
 //       deletingCriteria1.put( "semester",7);
 //       dbApp.deleteFromTable("Students", deletingCriteria1);
->>>>>>> parsing:src/main/java/engine/DBApp.java
        //case searching partial query and delete point that has null value in index but not deleted (10,null,10)
 //       dbApp.deleteFromTable("Students", deletingCriteria1);
 //       dbApp.deleteFromTable("Students", deletingCriteria2);
 
 
-<<<<<<< HEAD:src/main/java/DBApp.java
         SQLTerm sqlTerm = new SQLTerm("Students", "age", "<", 20);
         SQLTerm sqlTerm1 = new SQLTerm("Students", "name", ">=", "a");
         SQLTerm sqlTerm2 = new SQLTerm("Students", "gpa", ">=", 2.0);
@@ -1421,7 +1390,6 @@ public class DBApp {
         SQLTerm[] sqlTerms = {sqlTerm,sqlTerm1,sqlTerm2,sqlTerm3};
         String[] strarrOperators = {"AND","AND","OR"};
 //
-=======
 //        SQLTerm sqlTerm = new SQLTerm("Students", "gpa", "<", 2.5);
 //        SQLTerm sqlTerm1 = new SQLTerm("Students", "name", ">", "boni");
 //        SQLTerm sqlTerm2 = new SQLTerm("Students", "semester", ">=", 6);
@@ -1429,30 +1397,28 @@ public class DBApp {
 //        SQLTerm[] sqlTerms = {sqlTerm, sqlTerm1, sqlTerm2};
 //        String[] strarrOperators = {"AND", "AND"};
 
->>>>>>> parsing:src/main/java/engine/DBApp.java
 //        Iterator rs = dbApp.selectFromTable(sqlTerms, strarrOperators);
 //        System.out.println(rs);
 
-        Table table = Table.deserialize("Students");
+        Table table = Table.deserialize("students");
 
-<<<<<<< HEAD:src/main/java/DBApp.java
 //        dbApp.createIndex("Students", new String[]{"name", "age", "gpa"});
 
 
-        Index index3 = Index.deserialize(table.getName(), "nameagegpaIndex");
-        index3.octree.printTree();
-        System.out.println();
-=======
-//        Iterator resultSet = dbApp.parseSQL(new StringBuffer("select * from students where age = 3 and name = ahmed and semester = 3"));
+//        Index index3 = Index.deserialize(table.getName(), "nameagegpaIndex");
+//        index3.octree.printTree();
+//        System.out.println();
+        Iterator resultSet = dbApp.parseSQL(new StringBuffer("delete from students where age = 20"));
 
-//        System.out.println(resultSet.next());
+        System.out.println(resultSet.next());
+        System.out.println(resultSet.next());
+        System.out.println(resultSet.next());
 
 //        dbApp.createIndex("Students", new String[]{"semester", "name", "age"});
 
 
 //        Index index3 = Index.deserialize(table.getName(), "semesternameageIndex");
 //        index3.octree.printTree();
->>>>>>> parsing:src/main/java/engine/DBApp.java
 //        System.out.println();
 //        System.out.println();
 //        engine.Index index4 = engine.Index.deserialize(table.getName(), "gpaaddresslastNameIndex");

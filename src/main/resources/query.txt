@@ -1,1 +1,1 @@
-select * from students where age = 3 and name = ahmed and semester = 3
+delete from students where age = 20

@@ -426,16 +426,10 @@ public class OctTree implements Serializable {
         Point point6 = new Point(90, 30, 30, 2);
         t.insertInTree(point6);
         Cube bound = new Cube(90, 90, 0, 100, 100, 0);
-<<<<<<< HEAD:src/main/java/OctTree.java
         //System.out.println(Cube.checkPointsInboundary(point3,bound));
 //        System.out.println(t.searchPoint(90,null,null));
         t.printTree();
 //        System.out.println(Cube.dateMean("1-12-2002","30-12-2002"));
-=======
-        //System.out.println(engine.Cube.checkPointsInboundary(point3,bound));
-        System.out.println(t.searchPoint(90,null,null));
-       // t.printTree();
->>>>>>> parsing:src/main/java/engine/OctTree.java
         System.out.println();
 
 //        System.out.println(new Date(1735689600000L));
