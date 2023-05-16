@@ -17,11 +17,6 @@ public class Index implements Serializable {
         this.octree = octree;
     }
 
-    public void insert(Hashtable<String, Object> tuple, int ref) {
-        Point tuplePoint = new Point(tuple.get(columns[0]), tuple.get(columns[1]), tuple.get(columns[2]), ref);
-        System.out.println("Entered insert in class Index");
-        octree.insertInTree(tuplePoint);
-    }
 
     public String getTableName() {
         return tableName;
@@ -66,10 +61,34 @@ public class Index implements Serializable {
                 Object x = tuple.get(columns[0]);
                 Object y = tuple.get(columns[1]);
                 Object z = tuple.get(columns[2]);
+
+                if(x instanceof NullObject)
+                    x = null;
+                if(y instanceof NullObject)
+                    y = null;
+                if(z instanceof NullObject)
+                    z = null;
                 octree.insertInTree(new Point(x, y, z, id));
             }
             currPage.serialize();
         }
+    }
+     public void insert(Hashtable<String, Object> tuple, int ref) {
+
+        Object x = tuple.get(columns[0]);
+        Object y = tuple.get(columns[1]);
+        Object z = tuple.get(columns[2]);
+
+        if(x instanceof NullObject)
+            x = null;
+        if(y instanceof NullObject)
+            y = null;
+        if(z instanceof NullObject)
+            z = null;
+
+        Point tuplePoint = new Point(x,y,z, ref);
+        System.out.println("Entered insert in class Index");
+        octree.insertInTree(tuplePoint);
     }
 
     public void serialize() throws IOException {
@@ -252,6 +271,12 @@ public class Index implements Serializable {
         Object x = tuple.get(columns[0]);
         Object y = tuple.get(columns[1]);
         Object z = tuple.get(columns[2]);
+        if(x instanceof NullObject)
+            x = null;
+        if(y instanceof NullObject)
+            y = null;
+        if(z instanceof  NullObject)
+            z = null;
         Vector<Point> list = octree.searchPoint(x,y,z);
         System.out.println(list);
         for(Point point : list) {
@@ -266,6 +291,12 @@ public class Index implements Serializable {
         Object oldX = tuple.get(columns[0]);
         Object oldY = tuple.get(columns[1]);
         Object oldZ = tuple.get(columns[2]);
+        if(oldX instanceof NullObject)
+            oldX = null;
+        if(oldY instanceof NullObject)
+            oldY = null;
+        if(oldZ instanceof NullObject)
+            oldZ = null;
         Object newX = (updates.get(columns[0])==null)?(oldX):(updates.get(columns[0]));
         Object newY = (updates.get(columns[1])==null)?(oldY):(updates.get(columns[1]));
         Object newZ = (updates.get(columns[2])==null)?(oldZ):(updates.get(columns[2]));
@@ -285,6 +316,13 @@ public class Index implements Serializable {
                Object y = tuple.get(columns[1]);
                Object z = tuple.get(columns[2]);
 
+               if(x instanceof NullObject)
+                   x = null;
+               if (y instanceof NullObject)
+                   y = null;
+               if(z instanceof NullObject)
+                   z = null;
+
                octree.deleteInTree(x,y,z, id);
 
             }
@@ -295,6 +333,13 @@ public class Index implements Serializable {
         Object x = tuple.get(columns[0]);
         Object y = tuple.get(columns[1]);
         Object z = tuple.get(columns[2]);
+
+        if(x instanceof NullObject)
+            x = null;
+        if(y instanceof NullObject)
+            y = null;
+        if(z instanceof NullObject)
+            z = null;
 
         octree.deleteInTree(x,y,z, id);
     }
