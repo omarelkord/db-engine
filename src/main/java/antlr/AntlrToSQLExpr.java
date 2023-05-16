@@ -48,6 +48,13 @@ public class AntlrToSQLExpr extends gen.gBaseVisitor<SQLExpr>{
     }
 
     @Override
+    public SQLExpr visitDelete(gParser.DeleteContext ctx) {
+        StringLiteral tableName = new StringLiteral(ctx.getChild(1).getText());
+        Condition condition = (Condition) visit(ctx.getChild(3));
+        return new DeleteCommand(tableName,condition);
+    }
+
+    @Override
     public SQLExpr visitInsert(gParser.InsertContext ctx) {
         StringLiteral tableName = new StringLiteral(ctx.getChild(1).getText());
         Columns columns = (Columns) visit(ctx.getChild(3));
