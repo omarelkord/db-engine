@@ -1,17 +1,17 @@
 import java.io.Serializable;
 
-public class NullObject implements Serializable {
-    private static NullObject instance = null;
+public class DBAppNull implements Serializable {
+    private static DBAppNull instance = null;
 
 
-    private NullObject(){
+    private DBAppNull(){
 
     }
 
     // Static method to get the singleton instance of the class
-    public static NullObject getInstance() {
+    public static DBAppNull getInstance() {
         if(instance == null)
-            instance = new NullObject();
+            instance = new DBAppNull();
 
         return instance;
 

@@ -323,7 +323,7 @@ public class DBApp {
             if (htblColNameValue.size() < table.getNumOfCols()) {
                 for (String colName : table.getColumnNames())
                     if (htblColNameValue.get(colName) == null)
-                        htblColNameValue.put(colName, NullObject.getInstance());
+                        htblColNameValue.put(colName, DBAppNull.getInstance());
             }
 
             //INSERT IN INDEX SHOULD BE BEFORE SHIFT
@@ -813,7 +813,7 @@ public class DBApp {
     public static boolean sameType(Object data, String dataType) throws ClassNotFoundException {
         if(data==null)
             return true;
-        if(data instanceof NullObject)
+        if(data instanceof DBAppNull)
             return true;
         return data.getClass().equals(Class.forName(dataType));
     }
@@ -926,7 +926,7 @@ public class DBApp {
     }
 
     public static boolean operate(Object op1, Object op2, String operator) {
-        boolean cond1 = op1 instanceof NullObject;
+        boolean cond1 = op1 instanceof DBAppNull;
         boolean cond2 = op2 == null;
         if(!cond1 && !cond2){
         Comparable op3 = (Comparable) op1;
@@ -1219,7 +1219,7 @@ public class DBApp {
 
 
 
-        deletingCriteria0.put("age", NullObject.getInstance());
+        deletingCriteria0.put("age", DBAppNull.getInstance());
 //        deletingCriteria0.put("age", 27);
 //        deletingCriteria0.put("gpa",3.9 );
 

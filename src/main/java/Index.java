@@ -62,11 +62,11 @@ public class Index implements Serializable {
                 Object y = tuple.get(columns[1]);
                 Object z = tuple.get(columns[2]);
 
-                if(x instanceof NullObject)
+                if(x instanceof DBAppNull)
                     x = null;
-                if(y instanceof NullObject)
+                if(y instanceof DBAppNull)
                     y = null;
-                if(z instanceof NullObject)
+                if(z instanceof DBAppNull)
                     z = null;
                 octree.insertInTree(new Point(x, y, z, id));
             }
@@ -79,11 +79,11 @@ public class Index implements Serializable {
         Object y = tuple.get(columns[1]);
         Object z = tuple.get(columns[2]);
 
-        if(x instanceof NullObject)
+        if(x instanceof DBAppNull)
             x = null;
-        if(y instanceof NullObject)
+        if(y instanceof DBAppNull)
             y = null;
-        if(z instanceof NullObject)
+        if(z instanceof DBAppNull)
             z = null;
 
         Point tuplePoint = new Point(x,y,z, ref);
@@ -271,11 +271,11 @@ public class Index implements Serializable {
         Object x = tuple.get(columns[0]);
         Object y = tuple.get(columns[1]);
         Object z = tuple.get(columns[2]);
-        if(x instanceof NullObject)
+        if(x instanceof DBAppNull)
             x = null;
-        if(y instanceof NullObject)
+        if(y instanceof DBAppNull)
             y = null;
-        if(z instanceof  NullObject)
+        if(z instanceof DBAppNull)
             z = null;
         Vector<Point> list = octree.searchPoint(x,y,z);
         System.out.println(list);
@@ -291,11 +291,11 @@ public class Index implements Serializable {
         Object oldX = tuple.get(columns[0]);
         Object oldY = tuple.get(columns[1]);
         Object oldZ = tuple.get(columns[2]);
-        if(oldX instanceof NullObject)
+        if(oldX instanceof DBAppNull)
             oldX = null;
-        if(oldY instanceof NullObject)
+        if(oldY instanceof DBAppNull)
             oldY = null;
-        if(oldZ instanceof NullObject)
+        if(oldZ instanceof DBAppNull)
             oldZ = null;
         Object newX = (updates.get(columns[0])==null)?(oldX):(updates.get(columns[0]));
         Object newY = (updates.get(columns[1])==null)?(oldY):(updates.get(columns[1]));
@@ -316,11 +316,11 @@ public class Index implements Serializable {
                Object y = tuple.get(columns[1]);
                Object z = tuple.get(columns[2]);
 
-               if(x instanceof NullObject)
+               if(x instanceof DBAppNull)
                    x = null;
-               if (y instanceof NullObject)
+               if (y instanceof DBAppNull)
                    y = null;
-               if(z instanceof NullObject)
+               if(z instanceof DBAppNull)
                    z = null;
 
                octree.deleteInTree(x,y,z, id);
@@ -334,11 +334,11 @@ public class Index implements Serializable {
         Object y = tuple.get(columns[1]);
         Object z = tuple.get(columns[2]);
 
-        if(x instanceof NullObject)
+        if(x instanceof DBAppNull)
             x = null;
-        if(y instanceof NullObject)
+        if(y instanceof DBAppNull)
             y = null;
-        if(z instanceof NullObject)
+        if(z instanceof DBAppNull)
             z = null;
 
         octree.deleteInTree(x,y,z, id);
