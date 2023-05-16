@@ -30,4 +30,8 @@ public class ResultSet implements Iterator {
     public int getMaxIdx() {
         return maxIdx;
     }
+
+    public String toString(){
+        return resultTuples.toString();
+    }
 }

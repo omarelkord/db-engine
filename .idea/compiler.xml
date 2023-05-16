@@ -10,8 +10,7 @@
       </profile>
     </annotationProcessing>
     <bytecodeTargetLevel>
-      <module name="db-engine" target="1.5" />
-      <module name="pom.xml" target="19" />
+      <module name="db-engine" target="19" />
     </bytecodeTargetLevel>
   </component>
 </project>

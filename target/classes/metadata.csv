@@ -1,0 +1,5 @@
+Students,gpa,java.lang.Double,False,nameagegpaIndex,Octree,0.7,4.0
+Students,age,java.lang.Integer,False,nameagegpaIndex,Octree,1,40
+Students,name,java.lang.String,False,nameagegpaIndex,Octree,A,zzzzzzz
+Students,dob,java.util.Date,False,null,null,1940-01-01,2023-01-01
+Students,id,java.lang.Integer,True,null,null,0,20
