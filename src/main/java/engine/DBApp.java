@@ -1,3 +1,13 @@
+package engine;
+
+import antlr.*;
+import gen.gLexer;
+import gen.gParser;
+import org.antlr.v4.runtime.CharStream;
+import org.antlr.v4.runtime.CharStreams;
+import org.antlr.v4.runtime.CommonTokenStream;
+import org.antlr.v4.runtime.tree.ParseTree;
+
 import java.io.*;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -15,7 +25,7 @@ public class DBApp {
     //    public static final String METADATA_PATH = "D:\\db-engine\\src\\main\\resources\\metadata.csv";
     public static final String METADATA_PATH = "./src/main/resources/metadata.csv";
     public static final String TEMP_PATH = "./src/main/resources/temp.csv";
-    //    public static final String CONFIG_PATH = "D:\\db-engine\\src\\main\\resources\\DBApp.config";
+    //    public static final String CONFIG_PATH = "D:\\db-engine\\src\\main\\resources\\engine.DBApp.config";
     public static final String CONFIG_PATH = "./src/main/resources/DBApp.config";
 
     public DBApp() {
@@ -105,10 +115,10 @@ public class DBApp {
 
         System.out.println("out of verify");
 
-//        Pair pair = modifyCsvForIndex(strTableName, strarrColName);
+//        engine.Pair pair = modifyCsvForIndex(strTableName, strarrColName);
         Vector<String> colNames = modifyCsvForIndex(strTableName, strarrColName);
 
-//        Vector<Pair> info = (Vector<Pair>) pair.getMin();
+//        Vector<engine.Pair> info = (Vector<engine.Pair>) pair.getMin();
 //        Vector<String> colNames = (Vector<String>) pair.getMax();
         String[] colNamesArray = colNames.toArray(new String[0]);
 
@@ -242,7 +252,7 @@ public class DBApp {
                         indexType + "," + min + "," + max;
                 writer.println(row);
 
-//                Pair pair = new Pair(parse(min, colType), parse(max, colType));
+//               Pair pair = new Pair(parse(min, colType), parse(max, colType));
                 columnName.add(colName);
 //                minMax.add(pair);
             }
@@ -343,7 +353,7 @@ public class DBApp {
         Table table = Table.deserialize(strTableName);
 
 //        if(htblColNameValue.size() != table.getColumnNames().size())
-//            throw new DBAppException("Invalid number of columns entered");
+//            throw new engine.DBAppException("Invalid number of columns entered");
 
         if (htblColNameValue.size() > table.getNumOfCols())
             throw new DBAppException("Invalid number of columns entered");
@@ -606,7 +616,7 @@ public class DBApp {
     public void verifyDelete(String strTableName, Hashtable<String, Object> htblColNameValue) throws Exception {
 
         if (!tableNames.contains(strTableName))
-            throw new DBAppException("Table not found");
+            throw new DBAppException("engine.Table not found");
 
         Table table = Table.deserialize(strTableName);
 
@@ -691,7 +701,7 @@ public class DBApp {
                              Hashtable<String, Object> htblColNameValue) throws Exception {
 
         if (!tableNames.contains(strTableName))
-            throw new DBAppException("Table not found");
+            throw new DBAppException("engine.Table not found");
 
         Table table = Table.deserialize(strTableName);
 
@@ -753,6 +763,8 @@ public class DBApp {
             default -> value;
         };
     }
+
+
 
     public void shift(Hashtable<String, Object> tuple, Integer id, Table table) throws IOException, ClassNotFoundException {
         if (!table.hasPage(id)) {
@@ -1023,6 +1035,103 @@ public class DBApp {
         return rs;
     }
 
+    public static void main2(String[] args){
+
+        String fileName = "D:/db-engine/test.txt";
+
+        gParser parser = getParser(fileName);
+        ParseTree antlrAST = parser.prog();
+        AntlrToProgram progVisitor = new AntlrToProgram();
+        Program prog = progVisitor.visit(antlrAST);
+
+    }
+
+    private static gParser getParser(String fileName){
+
+        gParser parser = null;
+
+        try {
+            CharStream input = CharStreams.fromFileName(fileName);
+            gLexer lexer = new gLexer(input);
+            CommonTokenStream tokens = new CommonTokenStream(lexer);
+            parser = new gParser(tokens);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
+        return parser;
+
+    }
+
+    public Iterator execute(SQLExpr expr) throws Exception {
+
+        if(expr instanceof SelectCommand){
+            SelectCommand selectCmd = (SelectCommand) expr;
+            Condition condition = selectCmd.getCondition();
+            SQLTerm[] sqlTerms = new SQLTerm[condition.getStatements().size()];
+            String[] operators = new String[condition.getOperators().size()];
+
+            for(int i = 0; i < condition.getStatements().size(); i++){
+                Statement s = condition.getStatements().get(i);
+                SQLTerm sqlTerm = new SQLTerm(selectCmd.getTableName().getValue(), s.getColName().getValue(), s.getOperator().getValue(), s.getValue().getValue());
+                sqlTerms[i] = sqlTerm;
+            }
+
+            for(int i = 0; i < condition.getOperators().size(); i++){
+                String s = condition.getOperators().get(i).getValue().toUpperCase();
+                operators[i] = s;
+            }
+
+            return this.selectFromTable(sqlTerms, operators);
+        } else if(expr instanceof InsertCommand){
+            InsertCommand insertCmd = (InsertCommand) expr;
+            Hashtable<String, Object> tuple = new Hashtable<>();
+
+            String tableName = insertCmd.getTableName().getValue();
+
+            for(int i = 0; i < insertCmd.getValueList().getValues().size(); i++){
+                Object object = insertCmd.getValueList().getValues().get(i).getValue();
+                String colName = insertCmd.getColumns().getColumnNames().get(i).getValue();
+
+                tuple.put(colName, object);
+                System.out.println(tuple);
+            }
+
+            this.insertIntoTable(tableName, tuple);
+        }
+
+        return null;
+    }
+
+    public Iterator parseSQL(StringBuffer strbufSQL) throws DBAppException {
+
+        String filePath = "./src/main/resources/query.txt";
+        Iterator results = null;
+
+        try {
+            FileWriter fileWriter = new FileWriter(filePath);
+            BufferedWriter bufferedWriter = new BufferedWriter(fileWriter);
+            bufferedWriter.write(strbufSQL.toString());
+            bufferedWriter.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        gParser parser = getParser(filePath);
+        ParseTree antlrAST = parser.prog();
+        AntlrToProgram progVisitor = new AntlrToProgram();
+        Program prog = progVisitor.visit(antlrAST);
+
+        try {
+            results = this.execute(prog.getSqlExpr());
+        }catch (Exception e){
+            e.printStackTrace();
+            throw new DBAppException();
+
+        }
+
+        return results;
+    }
 
     public static void main(String[] args) throws Exception {
 
@@ -1044,7 +1153,7 @@ public class DBApp {
         tuple2.put("semester", 2);
 
 
-//        SQLTerm[] sqlTerms = {sqlTerm, sqlTerm1};
+//        engine.SQLTerm[] sqlTerms = {sqlTerm, sqlTerm1};
 //
 //        Vector<Boolean> boolArr = getSatisfied(tuple2, sqlTerms);
 //        String[] strarrOperators = {"AND"};
@@ -1157,16 +1266,16 @@ public class DBApp {
 
 
 
-//        dbApp.createTable("Students", "age", htblColNameType, htblColNameMin, htblColNameMax);
+//        dbApp.createTable("students", "age", htblColNameType, htblColNameMin, htblColNameMax);
 //        dbApp.insertIntoTable("Students", tuple0);
 //        dbApp.insertIntoTable("Students", tuple2);
 //        dbApp.insertIntoTable("Students", tuple6);
 //        dbApp.insertIntoTable("Students", tuple7);
 //        dbApp.insertIntoTable("Students", tuple8);
 //        dbApp.insertIntoTable("Students", tuple1);
-//        dbApp.insertIntoTable("Students", tuple3);
-//        dbApp.insertIntoTable("Students", tuple5);
-//        dbApp.insertIntoTable("Students", tuple4);
+//        dbApp.insertIntoTable("students", tuple3);
+//        dbApp.insertIntoTable("students", tuple5);
+//        dbApp.insertIntoTable("students", tuple4);
 //        dbApp.insertIntoTable("Students", tuple9);
 //        dbApp.insertIntoTable("Students", duplicate8);
 //        dbApp.createTable("Students", "age", htblColNameType, htblColNameMin, htblColNameMax);
@@ -1189,13 +1298,13 @@ public class DBApp {
 //        Hashtable<String, Object> updateHtbl = new Hashtable<>();
 //        updateHtbl.put("name", "George");
 //
-        Hashtable<String, Object> updateHtbl = new Hashtable<>();
-        updateHtbl.put("semester", 7);
-        dbApp.updateTable("Students", "9", updateHtbl);
+//        Hashtable<String, Object> updateHtbl = new Hashtable<>();
+//        updateHtbl.put("semester", 7);
+//        dbApp.updateTable("Students", "9", updateHtbl);
 
-        Hashtable<String, Object> deletingCriteria0 = new Hashtable<>();
-        Hashtable<String, Object> deletingCriteria1 = new Hashtable<>();
-        Hashtable<String, Object> deletingCriteria2 = new Hashtable<>();
+//        Hashtable<String, Object> deletingCriteria0 = new Hashtable<>();
+//        Hashtable<String, Object> deletingCriteria1 = new Hashtable<>();
+//        Hashtable<String, Object> deletingCriteria2 = new Hashtable<>();
      //   deletingCriteria0.put("age", 2);
 //       deletingCriteria1.put("name","lobna");
 //       deletingCriteria1.put( "age", 10);
@@ -1209,12 +1318,12 @@ public class DBApp {
 //       dbApp.deleteFromTable("Students", deletingCriteria2);
 
 
-        SQLTerm sqlTerm = new SQLTerm("Students", "gpa", "<", 2.5);
-        SQLTerm sqlTerm1 = new SQLTerm("Students", "name", ">", "boni");
-        SQLTerm sqlTerm2 = new SQLTerm("Students", "semester", ">=", 6);
-//
-        SQLTerm[] sqlTerms = {sqlTerm, sqlTerm1, sqlTerm2};
-        String[] strarrOperators = {"AND", "AND"};
+//        SQLTerm sqlTerm = new SQLTerm("Students", "gpa", "<", 2.5);
+//        SQLTerm sqlTerm1 = new SQLTerm("Students", "name", ">", "boni");
+//        SQLTerm sqlTerm2 = new SQLTerm("Students", "semester", ">=", 6);
+////
+//        SQLTerm[] sqlTerms = {sqlTerm, sqlTerm1, sqlTerm2};
+//        String[] strarrOperators = {"AND", "AND"};
 
 //        Iterator rs = dbApp.selectFromTable(sqlTerms, strarrOperators);
 //        System.out.println(rs.next());
@@ -1224,18 +1333,27 @@ public class DBApp {
 
         Table table = Table.deserialize("Students");
 
+//        Iterator resultSet = dbApp.parseSQL(new StringBuffer("select * from students where age = 3 and name = ahmed and semester = 3"));
+
+//        System.out.println(resultSet.next());
+
 //        dbApp.createIndex("Students", new String[]{"semester", "name", "age"});
 
 
-        Index index3 = Index.deserialize(table.getName(), "semesternameageIndex");
-        index3.octree.printTree();
-        System.out.println();
+//        Index index3 = Index.deserialize(table.getName(), "semesternameageIndex");
+//        index3.octree.printTree();
 //        System.out.println();
-//        Index index4 = Index.deserialize(table.getName(), "gpaaddresslastNameIndex");
+//        System.out.println();
+//        engine.Index index4 = engine.Index.deserialize(table.getName(), "gpaaddresslastNameIndex");
 //        index4.octree.printTree();
-        System.out.println();
+//        System.out.println();
 //      System.out.println(index3);
 //      System.out.println(table.getHtblIndexName());
+
+//        String str = "1995-10-04";
+//        dbApp.parseLiteral(str);
+
+
         for (int id : table.getHtblPageIdMinMax().keySet()) {
              Page p = Page.deserialize(table.getName(), id);
              System.out.println("PAGE " + id);

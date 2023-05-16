@@ -1,3 +1,5 @@
+package engine;
+
 import java.io.*;
 import java.util.*;
 public class Page implements Serializable {
@@ -53,7 +55,7 @@ public class Page implements Serializable {
         this.path = path;
     }
 
-    // Method to deserialize the Page object
+    // Method to deserialize the engine.Page object
     public static Page deserialize(String strTableName, Integer id) throws IOException, ClassNotFoundException {
         ObjectInputStream inputStream = new ObjectInputStream(new FileInputStream(PAGE_DIRECTORY + strTableName + "-" + id + ".ser"));
         Page page = (Page) inputStream.readObject();

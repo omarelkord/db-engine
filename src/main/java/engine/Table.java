@@ -1,5 +1,6 @@
+package engine;
+
 import java.io.*;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.Hashtable;
 import java.util.Vector;

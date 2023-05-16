@@ -1,7 +1,6 @@
+package engine;
+
 import java.io.Serializable;
-import java.sql.SQLOutput;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.*;
 
 public class OctTree implements Serializable {
@@ -423,7 +422,7 @@ public class OctTree implements Serializable {
         Point point6 = new Point(90, 30, 30, 0);
         t.insertInTree(point6);
         Cube bound = new Cube(90, 90, 0, 100, 100, 0);
-        //System.out.println(Cube.checkPointsInboundary(point3,bound));
+        //System.out.println(engine.Cube.checkPointsInboundary(point3,bound));
         System.out.println(t.searchPoint(90,null,null));
        // t.printTree();
         System.out.println();

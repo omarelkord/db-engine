@@ -1,3 +1,5 @@
+package engine;
+
 public class SQLTerm {
     private String _strTableName;
     private String _strColumnName;
@@ -42,10 +44,10 @@ public class SQLTerm {
         this._objValue = _objValue;
     }
 
-    public void checkOperator() throws DBAppException{
+    public void checkOperator() throws DBAppException {
         if(!_strOperator.equals(">") && !_strOperator.equals(">=") && !_strOperator.equals("<") && !_strOperator.equals("<=")
                 && !_strOperator.equals("=") && !_strOperator.equals("!="))
-            throw new DBAppException("Invalid SQLTerm operator");
+            throw new DBAppException("Invalid engine.SQLTerm operator");
     }
 
 

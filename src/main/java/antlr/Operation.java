@@ -1,2 +1,4 @@
-package antlr;public class Operation {
+package antlr;
+
+public class Operation {
 }

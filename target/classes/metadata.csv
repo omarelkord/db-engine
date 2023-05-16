@@ -1,6 +1,6 @@
-Students,gpa,java.lang.Double,False,null,null,0.7,4.0
-Students,address,java.lang.String,False,null,null,A,zzzzzzz
-Students,age,java.lang.Integer,True,semesternameageIndex,Octree,1,40
-Students,lastName,java.lang.String,False,null,null,A,zzzzzzz
-Students,name,java.lang.String,False,semesternameageIndex,Octree,A,zzzzzzz
-Students,semester,java.lang.Integer,False,semesternameageIndex,Octree,1,30
+students,gpa,java.lang.Double,False,null,null,0.7,4.0
+students,address,java.lang.String,False,null,null,A,zzzzzzz
+students,age,java.lang.Integer,True,null,null,1,40
+students,lastName,java.lang.String,False,null,null,A,zzzzzzz
+students,name,java.lang.String,False,null,null,A,zzzzzzz
+students,semester,java.lang.Integer,False,null,null,1,30

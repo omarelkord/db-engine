@@ -1,3 +1,5 @@
+package engine;
+
 import java.io.Serializable;
 
 public class NullObject implements Serializable {

@@ -1,3 +1,5 @@
+package engine;
+
 import java.io.*;
 import java.util.Hashtable;
 import java.util.Vector;
@@ -87,7 +89,7 @@ public class Index implements Serializable {
             z = null;
 
         Point tuplePoint = new Point(x,y,z, ref);
-        System.out.println("Entered insert in class Index");
+        System.out.println("Entered insert in class engine.Index");
         octree.insertInTree(tuplePoint);
     }
 
@@ -220,7 +222,7 @@ public class Index implements Serializable {
 
         table.serialize();
 
-//        Vector<Point> foundPoints = octree.searchPoint(x, y, z);
+//        Vector<engine.Point> foundPoints = octree.searchPoint(x, y, z);
         Vector<Point> foundPoints = octree.rangeSelect(maxX, minX , maxY , minY , maxZ ,minZ,include);
         Vector<Integer> references = new Vector<>();
         System.out.println(foundPoints);

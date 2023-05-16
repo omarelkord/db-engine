@@ -28,5 +28,17 @@
         <SOURCES />
       </library>
     </orderEntry>
+    <orderEntry type="library" name="Maven: org.antlr:antlr4-maven-plugin:4.12.0" level="project" />
+    <orderEntry type="library" name="Maven: org.codehaus.plexus:plexus-compiler-api:2.12.1" level="project" />
+    <orderEntry type="library" name="Maven: org.codehaus.plexus:plexus-utils:3.4.2" level="project" />
+    <orderEntry type="library" name="Maven: org.sonatype.plexus:plexus-build-api:0.0.7" level="project" />
+    <orderEntry type="library" name="Maven: org.antlr:antlr4:4.12.0" level="project" />
+    <orderEntry type="library" name="Maven: org.antlr:antlr4-runtime:4.12.0" level="project" />
+    <orderEntry type="library" name="Maven: org.antlr:antlr-runtime:3.5.3" level="project" />
+    <orderEntry type="library" name="Maven: org.antlr:ST4:4.3.4" level="project" />
+    <orderEntry type="library" name="Maven: org.abego.treelayout:org.abego.treelayout.core:1.0.3" level="project" />
+    <orderEntry type="library" name="Maven: com.ibm.icu:icu4j:71.1" level="project" />
+    <orderEntry type="library" name="Maven: org.slf4j:slf4j-api:2.0.0" level="project" />
+    <orderEntry type="library" name="Maven: org.slf4j:slf4j-simple:2.0.0" level="project" />
   </component>
 </module>
