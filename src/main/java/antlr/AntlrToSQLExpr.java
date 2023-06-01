@@ -3,6 +3,7 @@ package antlr;
 import gen.gParser;
 
 import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.Vector;
 
 public class AntlrToSQLExpr extends gen.gBaseVisitor<SQLExpr> {
@@ -14,6 +15,7 @@ public class AntlrToSQLExpr extends gen.gBaseVisitor<SQLExpr> {
         StringLiteral operator = new StringLiteral(ctx.getChild(1).getText());
         Literal value = null;
         try {
+            System.out.println("parsed = " + ctx.getChild(2).getText());
             value = parseLiteral(ctx.getChild(2).getText());
         } catch (Exception e) {
 
@@ -152,9 +154,8 @@ public class AntlrToSQLExpr extends gen.gBaseVisitor<SQLExpr> {
 
             } catch (Exception f) {
                 try {
-                    literal = new DateLiteral(new SimpleDateFormat("yyyy-MM-dd").parse(value));
-                    System.out.println("DATE LIT");
-
+                    Date date = new SimpleDateFormat("yyyy-MM-dd").parse(value);
+                    literal = new DateLiteral(date);
                 } catch (Exception g) {
                     literal = new StringLiteral(value);
                 }

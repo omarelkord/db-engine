@@ -1434,7 +1434,7 @@ public class DBApp {
 //        index3.octree.printTree();
 //        System.out.println();
 
-        String query = "select * from students where gpa < 2.0";
+        String query = "select * from students where gpa = 1999-12-27";
 
         Iterator resultSet = dbApp.parseSQL(new StringBuffer(query));
         System.out.println("-------------- QUERY RESULTS ---------------");

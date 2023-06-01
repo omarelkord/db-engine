@@ -14,7 +14,7 @@ statement: STRING OPERATOR object ;
 object : INT | DOUBLE | STRING | DATE ;
 
 INT: '0' | [1-9][0-9]*;
-DATE: [0-9]{4}'-'[0-9]{2}'-'[0-9]{2};
+DATE: [0-9]+'-'[0-9]+'-'[0-9]+;
 OPERATOR : '=' | '>' | '<' | '>=' | '<=';
 LOGICAL_OP : 'AND' | 'OR' | 'XOR' | ',';
 DOUBLE : [0-9]+ '.' [0-9]+ ;

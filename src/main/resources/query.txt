@@ -1,1 +1,1 @@
-select * from students where gpa < 2.0
+select * from students where gpa = 1999-12-27

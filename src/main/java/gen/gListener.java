@@ -127,44 +127,4 @@ public interface gListener extends ParseTreeListener {
 	 * @param ctx the parse tree
 	 */
 	void exitObject(gParser.ObjectContext ctx);
-	/**
-	 * Enter a parse tree produced by {@link gParser#date}.
-	 * @param ctx the parse tree
-	 */
-	void enterDate(gParser.DateContext ctx);
-	/**
-	 * Exit a parse tree produced by {@link gParser#date}.
-	 * @param ctx the parse tree
-	 */
-	void exitDate(gParser.DateContext ctx);
-	/**
-	 * Enter a parse tree produced by {@link gParser#year}.
-	 * @param ctx the parse tree
-	 */
-	void enterYear(gParser.YearContext ctx);
-	/**
-	 * Exit a parse tree produced by {@link gParser#year}.
-	 * @param ctx the parse tree
-	 */
-	void exitYear(gParser.YearContext ctx);
-	/**
-	 * Enter a parse tree produced by {@link gParser#month}.
-	 * @param ctx the parse tree
-	 */
-	void enterMonth(gParser.MonthContext ctx);
-	/**
-	 * Exit a parse tree produced by {@link gParser#month}.
-	 * @param ctx the parse tree
-	 */
-	void exitMonth(gParser.MonthContext ctx);
-	/**
-	 * Enter a parse tree produced by {@link gParser#day}.
-	 * @param ctx the parse tree
-	 */
-	void enterDay(gParser.DayContext ctx);
-	/**
-	 * Exit a parse tree produced by {@link gParser#day}.
-	 * @param ctx the parse tree
-	 */
-	void exitDay(gParser.DayContext ctx);
 }

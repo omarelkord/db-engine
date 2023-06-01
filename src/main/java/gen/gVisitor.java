@@ -82,28 +82,4 @@ public interface gVisitor<T> extends ParseTreeVisitor<T> {
 	 * @return the visitor result
 	 */
 	T visitObject(gParser.ObjectContext ctx);
-	/**
-	 * Visit a parse tree produced by {@link gParser#date}.
-	 * @param ctx the parse tree
-	 * @return the visitor result
-	 */
-	T visitDate(gParser.DateContext ctx);
-	/**
-	 * Visit a parse tree produced by {@link gParser#year}.
-	 * @param ctx the parse tree
-	 * @return the visitor result
-	 */
-	T visitYear(gParser.YearContext ctx);
-	/**
-	 * Visit a parse tree produced by {@link gParser#month}.
-	 * @param ctx the parse tree
-	 * @return the visitor result
-	 */
-	T visitMonth(gParser.MonthContext ctx);
-	/**
-	 * Visit a parse tree produced by {@link gParser#day}.
-	 * @param ctx the parse tree
-	 * @return the visitor result
-	 */
-	T visitDay(gParser.DayContext ctx);
 }
