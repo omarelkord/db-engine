@@ -1,1 +1,1 @@
-delete from students where age = 20
+update students set name = ola where age = 29

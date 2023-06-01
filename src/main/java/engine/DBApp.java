@@ -80,20 +80,20 @@ public class DBApp {
 
 
         //post-verification
-        Hashtable<String , Object> htblColMin = new Hashtable<>();
-        Hashtable<String , Object> htblColMax = new Hashtable<>();
-        try{
-            for (String colName: htblColNameMin.keySet()) {
+        Hashtable<String, Object> htblColMin = new Hashtable<>();
+        Hashtable<String, Object> htblColMax = new Hashtable<>();
+        try {
+            for (String colName : htblColNameMin.keySet()) {
                 Object parsed = parse(htblColNameMin.get(colName), htblColNameType.get(colName));
                 htblColMin.put(colName, parsed);
             }
 
-            for (String colName: htblColNameMax.keySet()) {
+            for (String colName : htblColNameMax.keySet()) {
                 Object parsed = parse(htblColNameMax.get(colName), htblColNameType.get(colName));
                 htblColMax.put(colName, parsed);
             }
 
-            Table table = new Table(strTableName, strClusteringKeyColumn,htblColMin,htblColMax);
+            Table table = new Table(strTableName, strClusteringKeyColumn, htblColMin, htblColMax);
             table.setCkType(htblColNameType.get(strClusteringKeyColumn));
             table.setNumOfCols(htblColNameType.size());
             table.setColumnNames(new Vector<>(htblColNameType.keySet()));
@@ -110,32 +110,32 @@ public class DBApp {
         }
 
     }
-    public static Object inflate(Object x){
-        if(x instanceof Integer)
-            return (int)x + 1;
-        if(x instanceof Double)
-            return (double)x+1;
-        if(x instanceof String)
-            return ((String)x+"a");
-        if(x instanceof Date)
-            return new Date(((Date)x).getTime() + 86400000);
+
+    public static Object inflate(Object x) {
+        if (x instanceof Integer)
+            return (int) x + 1;
+        if (x instanceof Double)
+            return (double) x + 1;
+        if (x instanceof String)
+            return ((String) x + "a");
+        if (x instanceof Date)
+            return new Date(((Date) x).getTime() + 86400000);
 
         return null;
     }
 
 
-
-    public static String getAscii(String s){
-            s = s.toLowerCase();
-            String result = "";
-            int ascii1 = 0;
-            for( int i = 0; i< s.length(); i++) {
-                ascii1 = (int) s.charAt(i) +1;
+    public static String getAscii(String s) {
+        s = s.toLowerCase();
+        String result = "";
+        int ascii1 = 0;
+        for (int i = 0; i < s.length(); i++) {
+            ascii1 = (int) s.charAt(i) + 1;
 //                ascii1 = (char)ascii1;
-                result+=ascii1;
-            }
-        return result;
+            result += ascii1;
         }
+        return result;
+    }
 
     public void createIndex(String strTableName,
                             String[] strarrColName) throws Exception {
@@ -155,7 +155,6 @@ public class DBApp {
 
         System.out.print("MIN X = ");
         System.out.println(minX);
-
 
 
         Object minY = table.getHtblColMin().get(colNamesArray[1]);
@@ -221,7 +220,7 @@ public class DBApp {
                 continue;
             }
 
-            for (int i = 0; i < strarrColName.length; i++){
+            for (int i = 0; i < strarrColName.length; i++) {
                 if (colName.equals(strarrColName[i]) && !indexName.equals("null")) {
                     throw new DBAppException("Table already has an index on this column");
                 }
@@ -234,7 +233,7 @@ public class DBApp {
     }
 
     public Vector<String> modifyCsvForIndex(String strTableName,
-                                  String[] strarrColName) throws Exception {
+                                            String[] strarrColName) throws Exception {
         BufferedReader reader = new BufferedReader(new FileReader(METADATA_PATH));
 
         // Create a temporary file for writing the modified content
@@ -310,21 +309,23 @@ public class DBApp {
         }
         pw.close();
     }
-    public Hashtable<String,Object> changeStringInHashtable(Hashtable<String,Object> htblColNameValue){
-        for(String column : htblColNameValue.keySet()){
-            if(htblColNameValue.get(column) instanceof String){
+
+    public Hashtable<String, Object> changeStringInHashtable(Hashtable<String, Object> htblColNameValue) {
+        for (String column : htblColNameValue.keySet()) {
+            if (htblColNameValue.get(column) instanceof String) {
                 String lower = (String) ((String) htblColNameValue.get(column)).toLowerCase();
-                htblColNameValue.put(column,lower);
+                htblColNameValue.put(column, lower);
             }
         }
         return htblColNameValue;
     }
+
     public void insertIntoTable(String strTableName,
                                 Hashtable<String, Object> htblColNameValue) throws DBAppException {
 
         try {
             verifyInsert(strTableName, htblColNameValue);
-            htblColNameValue= changeStringInHashtable(htblColNameValue);
+            htblColNameValue = changeStringInHashtable(htblColNameValue);
             Table table = Table.deserialize(strTableName);
             Comparable ckValue = (Comparable) htblColNameValue.get(table.getClusteringKey());
 
@@ -337,7 +338,7 @@ public class DBApp {
             }
 
             //INSERT IN INDEX SHOULD BE BEFORE SHIFT
-            int ref = (locatedPage == null)? (table.getMaxIDsoFar() + 1): locatedPage.getId();
+            int ref = (locatedPage == null) ? (table.getMaxIDsoFar() + 1) : locatedPage.getId();
 
             if (!table.isEmpty() && ckValue.compareTo(table.getHtblPageIdMinMax().get(ref).getMax()) >= 0 && locatedPage.isFull())
                 ref++;
@@ -413,7 +414,7 @@ public class DBApp {
 
             if (value != null) {
                 if (!sameType(value, colType)) {
-                   // System.out.println(colName);
+                    // System.out.println(colName);
                     throw new DBAppException("Incompatible data types");
                 }
                 if (compare(value, max) > 0)
@@ -507,11 +508,11 @@ public class DBApp {
             throws DBAppException {
         try {
             verifyDelete(strTableName, htblColNameValue);
-            htblColNameValue= changeStringInHashtable(htblColNameValue);
+            htblColNameValue = changeStringInHashtable(htblColNameValue);
             Table table = Table.deserialize(strTableName);
 
             boolean hasCK = htblColNameValue.get(table.getClusteringKey()) != null;
-            String indexFound = getIndex(table, htblColNameValue , hasCK);
+            String indexFound = getIndex(table, htblColNameValue, hasCK);
             // index on 3 columns
             // binary search using ck
             // index partial no ck
@@ -534,9 +535,9 @@ public class DBApp {
 
 
                 //REMOVE IT FROM INDEX
-                for(String IdxName : table.getHtblIndexNameColumn().keySet()){
+                for (String IdxName : table.getHtblIndexNameColumn().keySet()) {
                     Index index = Index.deserialize(strTableName, IdxName);
-                    index.deletePoints(tuple , locatedPage.getId());
+                    index.deletePoints(tuple, locatedPage.getId());
                     index.serialize();
                 }
 
@@ -552,16 +553,16 @@ public class DBApp {
                     ids = index.searchDelete(htblColNameValue);
                     index.serialize();
 
-                } else{
+                } else {
                     System.out.println("LINEAR SCAN");
                     ids = new Vector<Integer>(table.getHtblPageIdMinMax().keySet());
                 }
 
 
-                Hashtable<Integer,Vector<Hashtable<String,Object>>> htblIdTuples  =  new Hashtable<>();
+                Hashtable<Integer, Vector<Hashtable<String, Object>>> htblIdTuples = new Hashtable<>();
                 for (Integer id : ids) {
                     //CASE DUPLICATES HAVE SAME REFERENCE
-                    if(htblIdTuples.get(id) != null)
+                    if (htblIdTuples.get(id) != null)
                         continue;
                     Page currPage = Page.deserialize(table.getName(), id);
                     Vector<Hashtable<String, Object>> tmp = new Vector<>();
@@ -570,14 +571,14 @@ public class DBApp {
                         if (isMatch(htblColNameValue, tuple))
                             tmp.add(tuple);
 
-                    htblIdTuples.put(id,tmp);
+                    htblIdTuples.put(id, tmp);
 
                     currPage.getTuples().removeAll(tmp);
                     table.updatePageDelete(currPage);
                 }
 
 
-               updateIndices(table, htblIdTuples);
+                updateIndices(table, htblIdTuples);
 
             }
 
@@ -588,7 +589,7 @@ public class DBApp {
         }
     }
 
-    public String getIndex( Table table, Hashtable<String, Object> htblColNameValue , boolean hasCk){
+    public String getIndex(Table table, Hashtable<String, Object> htblColNameValue, boolean hasCk) {
 
         Hashtable<String, Vector<String>> htblIdxNameCol = table.getHtblIndexNameColumn();
 
@@ -609,16 +610,17 @@ public class DBApp {
                 break;
             }
             //Partial query
-            if(c > countSoFar && !hasCk){
+            if (c > countSoFar && !hasCk) {
                 indexFound = idxName;
                 countSoFar = c;
             }
         }
         return indexFound;
     }
-    public static void updateIndices(Table table , Hashtable<Integer,Vector<Hashtable<String,Object>>> htblIdTuples) throws Exception{
-        for(String idxName : table.getHtblIndexNameColumn().keySet()){
-            Index index = Index.deserialize(table.getName(),idxName);
+
+    public static void updateIndices(Table table, Hashtable<Integer, Vector<Hashtable<String, Object>>> htblIdTuples) throws Exception {
+        for (String idxName : table.getHtblIndexNameColumn().keySet()) {
+            Index index = Index.deserialize(table.getName(), idxName);
             index.deletePoints(htblIdTuples);
             index.serialize();
         }
@@ -660,7 +662,7 @@ public class DBApp {
 
             if (value != null) {
                 if (!sameType(value, colType)) {
-                   // System.out.println(colName);
+                    // System.out.println(colName);
                     throw new DBAppException("Incompatible data types");
                 }
 
@@ -685,10 +687,10 @@ public class DBApp {
         try {
             verifyUpdate(strTableName, strClusteringKeyValue, htblColNameValue);
 
-            htblColNameValue= changeStringInHashtable(htblColNameValue);
+            htblColNameValue = changeStringInHashtable(htblColNameValue);
             Table table = Table.deserialize(strTableName);
             Comparable ckValue = (Comparable) parse(strClusteringKeyValue, table.getCkType());
-            if(ckValue instanceof String)
+            if (ckValue instanceof String)
                 ckValue = ((String) ckValue).toLowerCase();
 
             Page locatedPage = table.getPageToModify(ckValue);
@@ -784,7 +786,6 @@ public class DBApp {
     }
 
 
-
     public void shift(Hashtable<String, Object> tuple, Integer id, Table table) throws IOException, ClassNotFoundException {
         if (!table.hasPage(id)) {
             newPageInit(tuple, table);
@@ -823,9 +824,9 @@ public class DBApp {
     }
 
     public static boolean sameType(Object data, String dataType) throws ClassNotFoundException {
-        if(data==null)
+        if (data == null)
             return true;
-        if(data instanceof DBAppNull)
+        if (data instanceof DBAppNull)
             return true;
         return data.getClass().equals(Class.forName(dataType));
     }
@@ -940,30 +941,27 @@ public class DBApp {
     public static boolean operate(Object op1, Object op2, String operator) {
         boolean cond1 = op1 instanceof DBAppNull;
         boolean cond2 = op2 == null;
-        if(!cond1 && !cond2){
-        Comparable op3 = (Comparable) op1;
-        return switch (operator) {
-            case "=" -> op3.equals(op2);
-            case "!=" -> !op3.equals(op2);
-            case ">" -> op3.compareTo(op2) > 0;
-            case ">=" -> op3.compareTo(op2) >= 0;
-            case "<" -> op3.compareTo(op2) < 0;
-            case "<=" -> op3.compareTo(op2) <= 0;
-            case "AND" -> (boolean) op3 && (boolean) op2;
-            case "OR" -> (boolean) op3 || (boolean) op2;
-            case "XOR" -> ((boolean) op3 && !((boolean) op2)) || (!((boolean) op3) && (boolean) op2);
+        if (!cond1 && !cond2) {
+            Comparable op3 = (Comparable) op1;
+            return switch (operator) {
+                case "=" -> op3.equals(op2);
+                case "!=" -> !op3.equals(op2);
+                case ">" -> op3.compareTo(op2) > 0;
+                case ">=" -> op3.compareTo(op2) >= 0;
+                case "<" -> op3.compareTo(op2) < 0;
+                case "<=" -> op3.compareTo(op2) <= 0;
+                case "AND" -> (boolean) op3 && (boolean) op2;
+                case "OR" -> (boolean) op3 || (boolean) op2;
+                case "XOR" -> ((boolean) op3 && !((boolean) op2)) || (!((boolean) op3) && (boolean) op2);
 
-            default -> false;
-        };
-        }
-        else if((cond1 && !cond2) ||(!cond1 && cond2)){
-            if(operator.equals("!="))
+                default -> false;
+            };
+        } else if ((cond1 && !cond2) || (!cond1 && cond2)) {
+            if (operator.equals("!="))
                 return true;
             return false;
-        }
-        else
-        {
-            if(operator.equals("=") )
+        } else {
+            if (operator.equals("="))
                 return true;
             else
                 return false;
@@ -1046,7 +1044,7 @@ public class DBApp {
 
 
             for (int ref : references) {
-                if(refSeen.contains(ref))
+                if (refSeen.contains(ref))
                     continue;
                 refSeen.add(ref);
                 Page p = Page.deserialize(tableName, ref);
@@ -1076,7 +1074,7 @@ public class DBApp {
         return rs;
     }
 
-    public static void main2(String[] args){
+    public static void main2(String[] args) {
 
         String fileName = "D:/db-engine/test.txt";
 
@@ -1087,7 +1085,7 @@ public class DBApp {
 
     }
 
-    private static gParser getParser(String fileName){
+    private static gParser getParser(String fileName) {
 
         gParser parser = null;
 
@@ -1106,31 +1104,31 @@ public class DBApp {
 
     public Iterator execute(SQLExpr expr) throws Exception {
 
-        if(expr instanceof SelectCommand){
+        if (expr instanceof SelectCommand) {
             SelectCommand selectCmd = (SelectCommand) expr;
             Condition condition = selectCmd.getCondition();
             SQLTerm[] sqlTerms = new SQLTerm[condition.getStatements().size()];
             String[] operators = new String[condition.getOperators().size()];
 
-            for(int i = 0; i < condition.getStatements().size(); i++){
+            for (int i = 0; i < condition.getStatements().size(); i++) {
                 Statement s = condition.getStatements().get(i);
                 SQLTerm sqlTerm = new SQLTerm(selectCmd.getTableName().getValue(), s.getColName().getValue(), s.getOperator().getValue(), s.getValue().getValue());
                 sqlTerms[i] = sqlTerm;
             }
 
-            for(int i = 0; i < condition.getOperators().size(); i++){
+            for (int i = 0; i < condition.getOperators().size(); i++) {
                 String s = condition.getOperators().get(i).getValue().toUpperCase();
                 operators[i] = s;
             }
 
             return this.selectFromTable(sqlTerms, operators);
-        } else if(expr instanceof InsertCommand){
+        } else if (expr instanceof InsertCommand) {
             InsertCommand insertCmd = (InsertCommand) expr;
             Hashtable<String, Object> tuple = new Hashtable<>();
 
             String tableName = insertCmd.getTableName().getValue();
 
-            for(int i = 0; i < insertCmd.getValueList().getValues().size(); i++){
+            for (int i = 0; i < insertCmd.getValueList().getValues().size(); i++) {
                 Object object = insertCmd.getValueList().getValues().get(i).getValue();
                 String colName = insertCmd.getColumns().getColumnNames().get(i).getValue();
 
@@ -1139,8 +1137,40 @@ public class DBApp {
             }
 
             this.insertIntoTable(tableName, tuple);
+        } else if (expr instanceof DeleteCommand) {
+            DeleteCommand delCmd = (DeleteCommand) expr;
+            Hashtable<String, Object> delCriteria = new Hashtable<>();
+
+            String tableName = delCmd.getTableName().getValue();
+            Condition condition = delCmd.getCondition();
+
+            for (Statement s : condition.getStatements()) {
+                delCriteria.put(s.getColName().getValue(), s.getValue().getValue());
+            }
+
+            this.deleteFromTable(tableName, delCriteria);
+        } else if (expr instanceof UpdateCommand) {
+            UpdateCommand updateCmd = (UpdateCommand) expr;
+            Hashtable<String, Object> htblColNameValue = new Hashtable<>();
+
+            String tableName = updateCmd.getTableName().getValue();
+
+            Condition setColumns = updateCmd.getSetColumns();
+
+            for (Statement s : setColumns.getStatements()) {
+                htblColNameValue.put(s.getColName().getValue(), s.getValue().getValue());
+            }
+
+            Condition updateCond = updateCmd.getUpdateConditions();
+            String strCkVal = updateCond.getStatements().get(0).getValue().getValue().toString();
+
+
+            this.updateTable(tableName, strCkVal, htblColNameValue);
+
+        }
 
         return null;
+
     }
 
     public Iterator parseSQL(StringBuffer strbufSQL) throws DBAppException {
@@ -1164,7 +1194,7 @@ public class DBApp {
 
         try {
             results = this.execute(prog.getSqlExpr());
-        }catch (Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
             throw new DBAppException();
 
@@ -1175,87 +1205,73 @@ public class DBApp {
 
     public static void main(String[] args) throws Exception {
         Hashtable<String, String> htblColNameType = new Hashtable<>();
-        htblColNameType.put("id", "java.lang.Integer");
+//        htblColNameType.put("id", "java.lang.Integer");
         htblColNameType.put("name", "java.lang.String");
         htblColNameType.put("age", "java.lang.Integer");
         htblColNameType.put("gpa", "java.lang.Double");
-        htblColNameType.put("dob","java.util.Date");
+//        htblColNameType.put("dob", "java.util.Date");
 
         Hashtable<String, String> htblColNameMin = new Hashtable<>();
-        htblColNameMin.put("id","0");
+//        htblColNameMin.put("id", "0");
         htblColNameMin.put("name", "A");
         htblColNameMin.put("age", "1");
         htblColNameMin.put("gpa", "0.7");
-        htblColNameMin.put("dob", "1940-01-01");
+//        htblColNameMin.put("dob", "1940-01-01");
 
 
         Hashtable<String, String> htblColNameMax = new Hashtable<>();
-        htblColNameMax.put("id","20");
+//        htblColNameMax.put("id", "20");
         htblColNameMax.put("name", "zzzzzzz");
         htblColNameMax.put("age", "40");
         htblColNameMax.put("gpa", "4.0");
-        htblColNameMax.put("dob", "2023-01-01");
+//        htblColNameMax.put("dob", "2023-01-01");
 
         Hashtable<String, Object> tuple0 = new Hashtable<>();
-        tuple0.put("id",0);
-        tuple0.put("name","Malak");
+//        tuple0.put("id", 0);
+        tuple0.put("name", "Malak");
         tuple0.put("age", 20);
         tuple0.put("gpa", 0.71);
-        tuple0.put("dob", new Date(1028812800000L));
+//        tuple0.put("dob", new Date(1028812800000L));
 
         Hashtable<String, Object> tuple1 = new Hashtable<>();
-        tuple1.put("id",1);
-        tuple1.put("name","Ahmed");
+//        tuple1.put("id", 1);
+        tuple1.put("name", "Ahmed");
         tuple1.put("age", 23);
         tuple1.put("gpa", 1.3);
-        tuple1.put("dob", new Date(1039315200000L));
+//        tuple1.put("dob", new Date(1039315200000L));
 
         Hashtable<String, Object> tuple2 = new Hashtable<>();
-        tuple2.put("id",2);
-        tuple2.put("name","Omar");
+//        tuple2.put("id", 2);
+        tuple2.put("name", "Omar");
         tuple2.put("age", 27);
         tuple2.put("gpa", 3.9);
-        tuple2.put("dob", new Date(817324800000L));
-        tuple2.put("age", 2);
-        tuple2.put("name", "Kord");
-        tuple2.put("gpa", 1.6);
-        tuple2.put("semester", 2);
-
-
-//        engine.SQLTerm[] sqlTerms = {sqlTerm, sqlTerm1};
-//
-//        Vector<Boolean> boolArr = getSatisfied(tuple2, sqlTerms);
-//        String[] strarrOperators = {"AND"};
-//
-//        System.out.println(boolArr);
-//        System.out.println(compute(boolArr, strarrOperators));
 
 
         Hashtable<String, Object> tuple3 = new Hashtable<>();
-        tuple3.put("id",3);
-        tuple3.put("name","Lobna");
+//        tuple3.put("id", 3);
+        tuple3.put("name", "Lobna");
         tuple3.put("age", 29);
         tuple3.put("gpa", 1.2);
-        tuple3.put("dob", new Date(759625200000L));
+//        tuple3.put("dob", new Date(759625200000L));
 
         Hashtable<String, Object> tuple4 = new Hashtable<>();
-        tuple4.put("id", 4);
+//        tuple4.put("id", 4);
+        tuple4.put("name", "Samy");
         tuple4.put("age", 10);
         tuple4.put("gpa", 4.0);
-        tuple4.put("dob", new Date(28800000L));
-
+//        tuple4.put("dob", new Date(28800000L));
 
 
         Hashtable<String, Object> tuple5 = new Hashtable<>();
-        tuple5.put("id",5);
-        tuple5.put("name","kord");
+        tuple5.put("id", 5);
+        tuple5.put("name", "kord");
         tuple5.put("age", 15);
         tuple5.put("gpa", 2.5);
-        tuple5.put("dob",new Date(1193616000000l));
+        tuple5.put("dob", new Date(1193616000000l));
 
 
         Hashtable<String, Object> tuple6 = new Hashtable<>();
-        tuple6.put("id",6);
+        tuple6.put("id", 6);
         tuple6.put("name", "Menna");
         tuple6.put("gpa", 3.0);
         tuple6.put("dob", new Date(0L));
@@ -1313,28 +1329,24 @@ public class DBApp {
         dbApp.init();
 
 
-
-
-
-
-        Hashtable<String, Object> updateHtbl = new Hashtable<>();
-        updateHtbl.put("age", 40);
+//        Hashtable<String, Object> updateHtbl = new Hashtable<>();
+//        updateHtbl.put("age", 40);
 
 //        dbApp.updateTable("Students", "3", updateHtbl);
 
-        Hashtable<String, Object> deletingCriteria0 = new Hashtable<>();
+//        Hashtable<String, Object> deletingCriteria0 = new Hashtable<>();
 
 
-        deletingCriteria0.put("age", DBAppNull.getInstance());
+//        deletingCriteria0.put("age", DBAppNull.getInstance());
 //        deletingCriteria0.put("age", 27);
 //        deletingCriteria0.put("gpa",3.9 );
 
 //       dbApp.deleteFromTable("Students", deletingCriteria0);
 //        dbApp.createTable("students", "age", htblColNameType, htblColNameMin, htblColNameMax);
 //        dbApp.insertIntoTable("students", tuple1);
-//        dbApp.insertIntoTable("Students", tuple2);
-//        dbApp.insertIntoTable("students", tuple6);
-//        dbApp.insertIntoTable("Students", tuple7);
+//        dbApp.insertIntoTable("students", tuple2);
+//        dbApp.insertIntoTable("students", tuple3);
+//        dbApp.insertIntoTable("students", tuple4);
 //        dbApp.insertIntoTable("students", tuple8);
 //        dbApp.insertIntoTable("Students", tuple1);
 //        dbApp.insertIntoTable("students", tuple3);
@@ -1369,7 +1381,7 @@ public class DBApp {
 //        Hashtable<String, Object> deletingCriteria0 = new Hashtable<>();
 //        Hashtable<String, Object> deletingCriteria1 = new Hashtable<>();
 //        Hashtable<String, Object> deletingCriteria2 = new Hashtable<>();
-     //   deletingCriteria0.put("age", 2);
+        //   deletingCriteria0.put("age", 2);
 //       deletingCriteria1.put("name","lobna");
 //       deletingCriteria1.put( "age", 10);
 //       deletingCriteria1.put( "age",8);
@@ -1377,18 +1389,18 @@ public class DBApp {
 //       deletingCriteria1.put( "gpa", 3.0);
 //       deletingCriteria1.put( "semester",7);
 //       dbApp.deleteFromTable("Students", deletingCriteria1);
-       //case searching partial query and delete point that has null value in index but not deleted (10,null,10)
+        //case searching partial query and delete point that has null value in index but not deleted (10,null,10)
 //       dbApp.deleteFromTable("Students", deletingCriteria1);
 //       dbApp.deleteFromTable("Students", deletingCriteria2);
 
-
-        SQLTerm sqlTerm = new SQLTerm("Students", "age", "<", 20);
-        SQLTerm sqlTerm1 = new SQLTerm("Students", "name", ">=", "a");
-        SQLTerm sqlTerm2 = new SQLTerm("Students", "gpa", ">=", 2.0);
-        SQLTerm sqlTerm3 = new SQLTerm("Students", "id", "!=", 6);
-////
-        SQLTerm[] sqlTerms = {sqlTerm,sqlTerm1,sqlTerm2,sqlTerm3};
-        String[] strarrOperators = {"AND","AND","OR"};
+//
+//        SQLTerm sqlTerm = new SQLTerm("Students", "age", "<", 20);
+//        SQLTerm sqlTerm1 = new SQLTerm("Students", "name", ">=", "a");
+//        SQLTerm sqlTerm2 = new SQLTerm("Students", "gpa", ">=", 2.0);
+//        SQLTerm sqlTerm3 = new SQLTerm("Students", "id", "!=", 6);
+//////
+//        SQLTerm[] sqlTerms = {sqlTerm, sqlTerm1, sqlTerm2, sqlTerm3};
+//        String[] strarrOperators = {"AND", "AND", "OR"};
 //
 //        SQLTerm sqlTerm = new SQLTerm("Students", "gpa", "<", 2.5);
 //        SQLTerm sqlTerm1 = new SQLTerm("Students", "name", ">", "boni");
@@ -1408,11 +1420,11 @@ public class DBApp {
 //        Index index3 = Index.deserialize(table.getName(), "nameagegpaIndex");
 //        index3.octree.printTree();
 //        System.out.println();
-        Iterator resultSet = dbApp.parseSQL(new StringBuffer("delete from students where age = 20"));
 
-        System.out.println(resultSet.next());
-        System.out.println(resultSet.next());
-        System.out.println(resultSet.next());
+        Iterator resultSet = dbApp.parseSQL(new StringBuffer("update students set name = ola where age = 29"));
+//        System.out.println(resultSet.next());
+//        System.out.println(resultSet.next());
+//        System.out.println(resultSet.next());
 
 //        dbApp.createIndex("Students", new String[]{"semester", "name", "age"});
 
@@ -1432,13 +1444,12 @@ public class DBApp {
 
 
         for (int id : table.getHtblPageIdMinMax().keySet()) {
-             Page p = Page.deserialize(table.getName(), id);
-             System.out.println("PAGE " + id);
-             System.out.println(p.getTuples());
-             System.out.println("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
-             p.serialize();
+            Page p = Page.deserialize(table.getName(), id);
+            System.out.println("PAGE " + id);
+            System.out.println(p.getTuples());
+            System.out.println("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
+            p.serialize();
         }
-
 
 
     }

@@ -15,7 +15,7 @@ public class AntlrToSQLExpr extends gen.gBaseVisitor<SQLExpr>{
         Vector<Statement> statements = new Vector<>();
         Vector<StringLiteral> logOperator = new Vector<>();
 
-        for(int i = 0; i < ctx.getChildCount(); i= i+4){
+        for(int i = 0; i < ctx.getChildCount(); i = i+4){
 
             StringLiteral colNameChild = new StringLiteral(ctx.getChild(i).getText());
             StringLiteral operatorChild = new StringLiteral(ctx.getChild(i+1).getText());
@@ -63,6 +63,18 @@ public class AntlrToSQLExpr extends gen.gBaseVisitor<SQLExpr>{
         InsertCommand insertCommand = new InsertCommand(tableName, columns, valueList);
 
         return insertCommand;
+    }
+
+    @Override
+    public SQLExpr visitUpdate(gParser.UpdateContext ctx) {
+        StringLiteral tableName = new StringLiteral(ctx.getChild(1).getText());
+        Condition setColumns = (Condition) visit(ctx.getChild(3));
+        Condition updateCondition = (Condition)  visit(ctx.getChild(5));
+
+        System.out.println(ctx.getChild(3).getClass());
+
+        return new UpdateCommand(tableName, setColumns, updateCondition);
+
     }
 
 //    @Override
@@ -143,6 +155,7 @@ public class AntlrToSQLExpr extends gen.gBaseVisitor<SQLExpr>{
 
         return literal;
     }
+
 
 
 
