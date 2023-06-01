@@ -6,17 +6,95 @@
   <component name="ChangeListManager">
     <list default="true" id="238bb55e-9247-4df8-bbc0-5b5557d7241c" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/antlr/AntlrToProgram.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/antlr/AntlrToProgram.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/antlr/AntlrToSQLExpr.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/antlr/AntlrToSQLExpr.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/antlr/UpdateCommand.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/antlr/UpdateCommand.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/antlr/Statement.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/antlr/Statement.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/antlr/createIndexCommand.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/antlr/createIndexCommand.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/engine/DBApp.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/engine/DBApp.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/engine/ResultSet.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/engine/ResultSet.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/gen/g.g4" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/gen/g.g4" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/resources/data/students-0.ser" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/resources/data/students.ser" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/gen/g.interp" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/gen/g.tokens" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/gen/gBaseListener.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/gen/gBaseVisitor.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/gen/gLexer.interp" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/gen/gLexer.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/gen/gLexer.tokens" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/gen/gListener.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/gen/gParser.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/gen/gVisitor.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/resources/data/students-0.ser" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/data/students-0.ser" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/resources/data/students-1.ser" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/data/students-1.ser" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/resources/data/students.ser" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/data/students.ser" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/resources/metadata.csv" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/metadata.csv" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/resources/query.txt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/query.txt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/data/Students.ser" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/data/Students.ser" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/engine/DBApp.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/engine/DBApp.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/query.txt" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/query.txt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/DBApp.config" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/antlr/AntlrToProgram.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/antlr/AntlrToSQLExpr.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/antlr/Columns.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/antlr/Condition.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/antlr/DateLiteral.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/antlr/DeleteCommand.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/antlr/DoubleLiteral.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/antlr/InsertCommand.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/antlr/IntLiteral.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/antlr/Literal.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/antlr/Operation.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/antlr/Program.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/antlr/SQLExpr.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/antlr/SelectCommand.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/antlr/Statement.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/antlr/StringLiteral.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/antlr/UpdateCommand.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/antlr/Value.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/antlr/ValueList.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/antlr/Values.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/antlr/createIndexCommand.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/antlr/createTableCommand.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/app/SQLExprApp.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/app/SQLExprProcessor.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/data/Students.ser" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/data/students-0.ser" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/data/students-1.ser" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/engine/Cube.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/engine/DBApp.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/engine/DBAppException.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/engine/DBAppNull.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/engine/Index.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/engine/OctTree.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/engine/Page.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/engine/Pair.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/engine/Point.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/engine/ResultSet.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/engine/SQLTerm.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/engine/Table.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/gen/gBaseListener.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/gen/gBaseVisitor.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/gen/gLexer.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/gen/gListener.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/gen/gParser$ColumnsContext.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/gen/gParser$ConditionContext.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/gen/gParser$CreateIndexContext.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/gen/gParser$CreateTableContext.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/gen/gParser$DateContext.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/gen/gParser$DayContext.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/gen/gParser$DeleteContext.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/gen/gParser$InsertContext.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/gen/gParser$MonthContext.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/gen/gParser$ObjectContext.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/gen/gParser$OperationContext.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/gen/gParser$ProgContext.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/gen/gParser$SelectionContext.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/gen/gParser$StatementContext.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/gen/gParser$UpdateColumnsContext.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/gen/gParser$UpdateContext.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/gen/gParser$ValuesContext.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/gen/gParser$YearContext.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/gen/gParser.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/gen/gVisitor.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/metadata.csv" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/org/example/Main.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/query.txt" beforeDir="false" />
     </list>
     <list id="fe1332b1-4533-47b1-8934-9d2e829baa49" name="Changes by Ahmed Labib" comment="" />
     <list id="cb1c830c-e904-41b6-b8c8-a0f6b7cd9bb7" name="Changes by Malak Labib" comment="" />
@@ -52,23 +130,23 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "Downloaded.Files.Path.Enabled": "false",
-    "Repository.Attach.Annotations": "false",
-    "Repository.Attach.JavaDocs": "false",
-    "Repository.Attach.Sources": "false",
-    "RunOnceActivity.OpenProjectViewOnStart": "true",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "TODO_SCOPE": "All Places",
-    "jdk.selected.JAVA_MODULE": "openjdk-19",
-    "last_opened_file_path": "D:/db-engine",
-    "project.structure.last.edited": "Modules",
-    "project.structure.proportion": "0.15234375",
-    "project.structure.side.proportion": "0.2",
-    "settings.editor.selected.configurable": "preferences.pluginManager"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;Downloaded.Files.Path.Enabled&quot;: &quot;false&quot;,
+    &quot;Repository.Attach.Annotations&quot;: &quot;false&quot;,
+    &quot;Repository.Attach.JavaDocs&quot;: &quot;false&quot;,
+    &quot;Repository.Attach.Sources&quot;: &quot;false&quot;,
+    &quot;RunOnceActivity.OpenProjectViewOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;TODO_SCOPE&quot;: &quot;All Places&quot;,
+    &quot;jdk.selected.JAVA_MODULE&quot;: &quot;openjdk-19&quot;,
+    &quot;last_opened_file_path&quot;: &quot;D:/db-engine&quot;,
+    &quot;project.structure.last.edited&quot;: &quot;Modules&quot;,
+    &quot;project.structure.proportion&quot;: &quot;0.15234375&quot;,
+    &quot;project.structure.side.proportion&quot;: &quot;0.2&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;preferences.pluginManager&quot;
   }
-}]]></component>
+}</component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
       <recent name="D:\db-engine\src" />
@@ -76,11 +154,11 @@
       <recent name="D:\db-engine\Tests" />
     </key>
     <key name="MoveFile.RECENT_KEYS">
+      <recent name="D:\db-engine\src\main\java\gen" />
       <recent name="D:\db-engine\src\main\java\engine" />
       <recent name="D:\db-engine\src\main\java" />
       <recent name="D:\db-engine\src\main\resources" />
       <recent name="D:\db-engine\src\main\resources\data" />
-      <recent name="D:\db-engine\src\main" />
     </key>
   </component>
   <component name="RunManager" selected="Application.DBApp">

@@ -1,4 +1,4 @@
-// Generated from D:/db-engine/src/main/java\g.g4 by ANTLR 4.12.0
+// Generated from D:/db-engine/src/main/java/gen\g.g4 by ANTLR 4.12.0
 package gen;
 import org.antlr.v4.runtime.tree.ParseTreeListener;
 
@@ -17,16 +17,6 @@ public interface gListener extends ParseTreeListener {
 	 * @param ctx the parse tree
 	 */
 	void exitProg(gParser.ProgContext ctx);
-	/**
-	 * Enter a parse tree produced by {@link gParser#operation}.
-	 * @param ctx the parse tree
-	 */
-	void enterOperation(gParser.OperationContext ctx);
-	/**
-	 * Exit a parse tree produced by {@link gParser#operation}.
-	 * @param ctx the parse tree
-	 */
-	void exitOperation(gParser.OperationContext ctx);
 	/**
 	 * Enter a parse tree produced by {@link gParser#createTable}.
 	 * @param ctx the parse tree
@@ -97,16 +87,6 @@ public interface gListener extends ParseTreeListener {
 	 * @param ctx the parse tree
 	 */
 	void exitSelection(gParser.SelectionContext ctx);
-	/**
-	 * Enter a parse tree produced by {@link gParser#updateColumns}.
-	 * @param ctx the parse tree
-	 */
-	void enterUpdateColumns(gParser.UpdateColumnsContext ctx);
-	/**
-	 * Exit a parse tree produced by {@link gParser#updateColumns}.
-	 * @param ctx the parse tree
-	 */
-	void exitUpdateColumns(gParser.UpdateColumnsContext ctx);
 	/**
 	 * Enter a parse tree produced by {@link gParser#columns}.
 	 * @param ctx the parse tree

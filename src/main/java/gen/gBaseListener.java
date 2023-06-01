@@ -1,5 +1,6 @@
-// Generated from D:/db-engine/src/main/java\g.g4 by ANTLR 4.12.0
+// Generated from D:/db-engine/src/main/java/gen\g.g4 by ANTLR 4.12.0
 package gen;
+
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.tree.ErrorNode;
 import org.antlr.v4.runtime.tree.TerminalNode;
@@ -23,18 +24,6 @@ public class gBaseListener implements gListener {
 	 * <p>The default implementation does nothing.</p>
 	 */
 	@Override public void exitProg(gParser.ProgContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void enterOperation(gParser.OperationContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void exitOperation(gParser.OperationContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
@@ -119,18 +108,6 @@ public class gBaseListener implements gListener {
 	 * <p>The default implementation does nothing.</p>
 	 */
 	@Override public void exitSelection(gParser.SelectionContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void enterUpdateColumns(gParser.UpdateColumnsContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void exitUpdateColumns(gParser.UpdateColumnsContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *

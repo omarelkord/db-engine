@@ -1,6 +1,6 @@
 package antlr;
 
-public class Statement {
+public class Statement extends SQLExpr{
 
     StringLiteral colName;
     StringLiteral operator;

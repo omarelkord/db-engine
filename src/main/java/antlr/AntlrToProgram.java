@@ -9,7 +9,6 @@ public class AntlrToProgram extends gen.gBaseVisitor<Program> {
         AntlrToSQLExpr exprVis = new AntlrToSQLExpr();
 
         prog.sqlExpr = exprVis.visit(ctx.getChild(0));
-        System.out.println(prog.sqlExpr);
         return prog;
     }
 }

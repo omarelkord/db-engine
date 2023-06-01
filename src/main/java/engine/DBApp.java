@@ -51,6 +51,8 @@ public class DBApp {
         }
     }
 
+    //create table students (age, name, gpa) (a, a, a) (b,b,b)
+
 
     public void createTable(String strTableName,
                             String strClusteringKeyColumn,
@@ -1107,6 +1109,9 @@ public class DBApp {
         if (expr instanceof SelectCommand) {
             SelectCommand selectCmd = (SelectCommand) expr;
             Condition condition = selectCmd.getCondition();
+
+            System.out.println("COND: " + condition);
+
             SQLTerm[] sqlTerms = new SQLTerm[condition.getStatements().size()];
             String[] operators = new String[condition.getOperators().size()];
 
@@ -1133,7 +1138,6 @@ public class DBApp {
                 String colName = insertCmd.getColumns().getColumnNames().get(i).getValue();
 
                 tuple.put(colName, object);
-                System.out.println(tuple);
             }
 
             this.insertIntoTable(tableName, tuple);
@@ -1166,11 +1170,21 @@ public class DBApp {
 
 
             this.updateTable(tableName, strCkVal, htblColNameValue);
+        }else if(expr instanceof createIndexCommand){
+            createIndexCommand createIdxCmd = (createIndexCommand) expr;
+            String tableName = createIdxCmd.getTableName().getValue();
+            Columns cols = createIdxCmd.getColumns();
+            String[] colNames = new String[3];
+            int j = 0;
 
+            for(StringLiteral s : cols.getColumnNames()){
+                colNames[j++] = s.getValue();
+            }
+
+            this.createIndex(tableName, colNames);
         }
 
         return null;
-
     }
 
     public Iterator parseSQL(StringBuffer strbufSQL) throws DBAppException {
@@ -1197,7 +1211,6 @@ public class DBApp {
         } catch (Exception e) {
             e.printStackTrace();
             throw new DBAppException();
-
         }
 
         return results;
@@ -1421,13 +1434,19 @@ public class DBApp {
 //        index3.octree.printTree();
 //        System.out.println();
 
-        Iterator resultSet = dbApp.parseSQL(new StringBuffer("update students set name = ola where age = 29"));
-//        System.out.println(resultSet.next());
-//        System.out.println(resultSet.next());
+        String query = "select * from students where gpa < 2.0";
+
+        Iterator resultSet = dbApp.parseSQL(new StringBuffer(query));
+        System.out.println("-------------- QUERY RESULTS ---------------");
+        System.out.println(resultSet.next());
+        System.out.println(resultSet.next());
+        System.out.println(resultSet.next());
+        System.out.println(resultSet.next());
+        System.out.println(resultSet.next());
+        System.out.println("-------------- QUERY RESULTS ---------------");
 //        System.out.println(resultSet.next());
 
 //        dbApp.createIndex("Students", new String[]{"semester", "name", "age"});
-
 
 //        Index index3 = Index.deserialize(table.getName(), "semesternameageIndex");
 //        index3.octree.printTree();

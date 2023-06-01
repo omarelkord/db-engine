@@ -1,4 +1,5 @@
-package gen;// Generated from D:/db-engine/src/main/java\g.g4 by ANTLR 4.12.0
+// Generated from D:/db-engine/src/main/java/gen\g.g4 by ANTLR 4.12.0
+package gen;
 import org.antlr.v4.runtime.tree.ParseTreeVisitor;
 
 /**
@@ -15,12 +16,6 @@ public interface gVisitor<T> extends ParseTreeVisitor<T> {
 	 * @return the visitor result
 	 */
 	T visitProg(gParser.ProgContext ctx);
-	/**
-	 * Visit a parse tree produced by {@link gParser#operation}.
-	 * @param ctx the parse tree
-	 * @return the visitor result
-	 */
-	T visitOperation(gParser.OperationContext ctx);
 	/**
 	 * Visit a parse tree produced by {@link gParser#createTable}.
 	 * @param ctx the parse tree
@@ -63,12 +58,6 @@ public interface gVisitor<T> extends ParseTreeVisitor<T> {
 	 * @return the visitor result
 	 */
 	T visitSelection(gParser.SelectionContext ctx);
-	/**
-	 * Visit a parse tree produced by {@link gParser#updateColumns}.
-	 * @param ctx the parse tree
-	 * @return the visitor result
-	 */
-	T visitUpdateColumns(gParser.UpdateColumnsContext ctx);
 	/**
 	 * Visit a parse tree produced by {@link gParser#columns}.
 	 * @param ctx the parse tree

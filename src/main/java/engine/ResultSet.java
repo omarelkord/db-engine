@@ -19,7 +19,6 @@ public class ResultSet implements Iterator {
 
     @Override
     public Object next() {
-        System.out.println("Entered next");
         if(hasNext())
             return resultTuples.get(maxIdx++);
         return null;

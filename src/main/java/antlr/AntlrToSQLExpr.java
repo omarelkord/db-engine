@@ -1,13 +1,25 @@
 package antlr;
 
 import gen.gParser;
-import org.antlr.v4.runtime.tree.ParseTree;
 
-import javax.swing.plaf.nimbus.State;
 import java.text.SimpleDateFormat;
 import java.util.Vector;
 
-public class AntlrToSQLExpr extends gen.gBaseVisitor<SQLExpr>{
+public class AntlrToSQLExpr extends gen.gBaseVisitor<SQLExpr> {
+
+    @Override
+    public SQLExpr visitStatement(gParser.StatementContext ctx) {
+
+        StringLiteral colName = new StringLiteral(ctx.getChild(0).getText());
+        StringLiteral operator = new StringLiteral(ctx.getChild(1).getText());
+        Literal value = null;
+        try {
+            value = parseLiteral(ctx.getChild(2).getText());
+        } catch (Exception e) {
+
+        }
+        return new Statement(colName, operator, value);
+    }
 
     @Override
     public SQLExpr visitCondition(gParser.ConditionContext ctx) {
@@ -15,25 +27,17 @@ public class AntlrToSQLExpr extends gen.gBaseVisitor<SQLExpr>{
         Vector<Statement> statements = new Vector<>();
         Vector<StringLiteral> logOperator = new Vector<>();
 
-        for(int i = 0; i < ctx.getChildCount(); i = i+4){
+        for (int i = 0; i < ctx.getChildCount(); i = i + 2) {
 
-            StringLiteral colNameChild = new StringLiteral(ctx.getChild(i).getText());
-            StringLiteral operatorChild = new StringLiteral(ctx.getChild(i+1).getText());
-            Literal valueChild = null;
-            try{
-                valueChild = parseLiteral(ctx.getChild(i+2).getText());
-            }catch (Exception e){
+            System.out.println(ctx.getChild(i).getClass());
 
-            }
+            Statement currStatement = (Statement) visit(ctx.getChild(i));
+            statements.add(currStatement);
 
-            if(i+3 < ctx.getChildCount()){
-                StringLiteral logicalOperator = new StringLiteral(ctx.getChild(i+3).getText());
+            if (i + 1 < ctx.getChildCount()) {
+                StringLiteral logicalOperator = new StringLiteral(ctx.getChild(i + 1).getText());
                 logOperator.add(logicalOperator);
             }
-
-
-            Statement statement = new Statement(colNameChild, operatorChild, valueChild);
-            statements.add(statement);
         }
 
         return new Condition(statements, logOperator);
@@ -44,6 +48,8 @@ public class AntlrToSQLExpr extends gen.gBaseVisitor<SQLExpr>{
         StringLiteral tableName = new StringLiteral(ctx.getChild(3).getText());
         Condition condition = (Condition) visit(ctx.getChild(5));
 
+        System.out.println(condition);
+
         return new SelectCommand(tableName, condition);
     }
 
@@ -51,7 +57,7 @@ public class AntlrToSQLExpr extends gen.gBaseVisitor<SQLExpr>{
     public SQLExpr visitDelete(gParser.DeleteContext ctx) {
         StringLiteral tableName = new StringLiteral(ctx.getChild(1).getText());
         Condition condition = (Condition) visit(ctx.getChild(3));
-        return new DeleteCommand(tableName,condition);
+        return new DeleteCommand(tableName, condition);
     }
 
     @Override
@@ -69,9 +75,7 @@ public class AntlrToSQLExpr extends gen.gBaseVisitor<SQLExpr>{
     public SQLExpr visitUpdate(gParser.UpdateContext ctx) {
         StringLiteral tableName = new StringLiteral(ctx.getChild(1).getText());
         Condition setColumns = (Condition) visit(ctx.getChild(3));
-        Condition updateCondition = (Condition)  visit(ctx.getChild(5));
-
-        System.out.println(ctx.getChild(3).getClass());
+        Condition updateCondition = (Condition) visit(ctx.getChild(5));
 
         return new UpdateCommand(tableName, setColumns, updateCondition);
 
@@ -88,14 +92,14 @@ public class AntlrToSQLExpr extends gen.gBaseVisitor<SQLExpr>{
         Vector<Literal> values = new Vector<>();
         ValueList finalVals = new ValueList(values);
 
-        try{
+        try {
             Literal literal = parseLiteral(ctx.getChild(0).getText());
             values.add(literal);
-        }catch(Exception e){
+        } catch (Exception e) {
 
         }
 
-        if(ctx.getChildCount() == 1){
+        if (ctx.getChildCount() == 1) {
             return finalVals;
         }
 
@@ -107,6 +111,16 @@ public class AntlrToSQLExpr extends gen.gBaseVisitor<SQLExpr>{
     }
 
     @Override
+    public SQLExpr visitCreateIndex(gParser.CreateIndexContext ctx) {
+
+        StringLiteral tableName = new StringLiteral(ctx.getChild(3).getText());
+        Columns columns = (Columns) visit(ctx.getChild(5));
+
+        return new createIndexCommand(tableName, columns);
+    }
+
+
+    @Override
     public SQLExpr visitColumns(gParser.ColumnsContext ctx) {
         Vector<StringLiteral> colNames = new Vector<>();
         Columns finalCols = new Columns(colNames);
@@ -114,7 +128,7 @@ public class AntlrToSQLExpr extends gen.gBaseVisitor<SQLExpr>{
         StringLiteral firstCol = new StringLiteral(ctx.getChild(0).getText());
         colNames.add(firstCol);
 
-        if(ctx.getChildCount() == 1){
+        if (ctx.getChildCount() == 1) {
             return finalCols;
         }
 
@@ -126,29 +140,23 @@ public class AntlrToSQLExpr extends gen.gBaseVisitor<SQLExpr>{
     }
 
 
-    public static Literal parseLiteral(String value) throws Exception{
+    public static Literal parseLiteral(String value) throws Exception {
 
         Literal literal = new Literal();
 
-        try{
+        try {
             literal = new IntLiteral(Integer.parseInt(value));
-            System.out.println("INT LIT");
-        }catch (Exception e){
+        } catch (Exception e) {
             try {
-                literal =  new DoubleLiteral(Double.parseDouble(value));
-                System.out.println("DOUBLE LIT");
+                literal = new DoubleLiteral(Double.parseDouble(value));
 
-            }
-            catch (Exception f){
-                try{
+            } catch (Exception f) {
+                try {
                     literal = new DateLiteral(new SimpleDateFormat("yyyy-MM-dd").parse(value));
                     System.out.println("DATE LIT");
 
-                }
-                catch (Exception g){
+                } catch (Exception g) {
                     literal = new StringLiteral(value);
-                    System.out.println("STRING LIT");
-
                 }
             }
         }
@@ -157,10 +165,4 @@ public class AntlrToSQLExpr extends gen.gBaseVisitor<SQLExpr>{
     }
 
 
-
-
-    //    @Override
-//    public SQLExpr visitStatement(gParser.StatementContext ctx) {
-//        return super.visitStatement(ctx);
-//    }
 }
